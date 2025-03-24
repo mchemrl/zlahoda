@@ -1,138 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("All categories");
 
-  const mockData = [
-    {
-      id: 1,
-      name: "Orange Juice",
-      category: "Beverages",
-      characteristics: "Fresh, Vitamin C, No added sugar",
-    },
-    {
-      id: 2,
-      name: "Milk",
-      category: "Dairy",
-      characteristics: "Organic, Lactose-free, High calcium",
-    },
-    {
-      id: 3,
-      name: "Chips",
-      category: "Snacks",
-      characteristics: "Crunchy, Low sodium, Gluten-free",
-    },
-    {
-      id: 4,
-      name: "Apple Juice",
-      category: "Beverages",
-      characteristics: "100% Natural, No preservatives, Rich in antioxidants",
-    },
-    {
-      id: 5,
-      name: "Yogurt",
-      category: "Dairy",
-      characteristics: "Probiotic, Low fat, Strawberry flavor",
-    },
-    {
-      id: 6,
-      name: "Chocolate Bar",
-      category: "Snacks",
-      characteristics: "Dark chocolate, 70% cocoa, Vegan",
-    },
-    {
-      id: 7,
-      name: "Green Tea",
-      category: "Beverages",
-      characteristics: "Antioxidant-rich, Caffeine-free, Refreshing",
-    },
-    {
-      id: 8,
-      name: "Cheese",
-      category: "Dairy",
-      characteristics: "Aged cheddar, Sharp flavor, High protein",
-    },
-    {
-      id: 9,
-      name: "Popcorn",
-      category: "Snacks",
-      characteristics: "Butter flavor, Lightly salted, Gluten-free",
-    },
-    {
-      id: 10,
-      name: "Iced Coffee",
-      category: "Beverages",
-      characteristics: "Cold brew, Low calorie, Sweetened",
-    },
-    {
-      id: 11,
-      name: "Butter",
-      category: "Dairy",
-      characteristics: "Unsalted, Grass-fed, Rich flavor",
-    },
-    {
-      id: 12,
-      name: "Granola Bar",
-      category: "Snacks",
-      characteristics: "Oats, Honey, Nuts, Gluten-free",
-    },
-    {
-      id: 13,
-      name: "Lemonade",
-      category: "Beverages",
-      characteristics: "Tart, Refreshing, No artificial flavors",
-    },
-    {
-      id: 14,
-      name: "Sour Cream",
-      category: "Dairy",
-      characteristics: "Creamy, Tangy, Low fat",
-    },
-    {
-      id: 15,
-      name: "Pretzels",
-      category: "Snacks",
-      characteristics: "Salted, Crunchy, Low fat",
-    },
-    {
-      id: 16,
-      name: "Soda",
-      category: "Beverages",
-      characteristics: "Carbonated, Sweet, Assorted flavors",
-    },
-    {
-      id: 17,
-      name: "Whipped Cream",
-      category: "Dairy",
-      characteristics: "Light, Fluffy, Sweetened",
-    },
-    {
-      id: 18,
-      name: "Trail Mix",
-      category: "Snacks",
-      characteristics: "Nuts, Dried fruit, Chocolate chips",
-    },
-    {
-      id: 19,
-      name: "Energy Drink",
-      category: "Beverages",
-      characteristics: "High caffeine, Sugar-free, Berry flavor",
-    },
-    {
-      id: 20,
-      name: "Cottage Cheese",
-      category: "Dairy",
-      characteristics: "High protein, Low fat, Creamy texture",
-    },
-  ];
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/get_products")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Fetched products:", data);
+        setProducts(data);
+      })
+      .catch((error) => console.error("Error fetching products:", error));
+  }, []);
 
-  const filteredData = mockData.filter((product) => {
-    const nameMatch = product.name
+  const filteredData = products.filter((product) => {
+    const nameMatch = product.product_name
       .toLowerCase()
       .includes(productName.toLowerCase());
     const categoryMatch =
-      category === "All categories" || product.category === category;
+      category === "All categories" || product.category_number === category;
     return nameMatch && categoryMatch;
   });
 
@@ -173,9 +61,9 @@ export default function ProductsPage() {
             className="flex-1 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] focus:outline-none focus:ring-2 focus:ring-[#f57b20]"
           >
             <option>All categories</option>
-            <option>Beverages</option>
-            <option>Snacks</option>
-            <option>Dairy</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
           </select>
         </div>
 
@@ -205,8 +93,10 @@ export default function ProductsPage() {
                     key={product.id}
                     className="border-b border-[#fff3ea] hover:bg-[#db6c1c]"
                   >
-                    <td className="px-4 py-2 w-1/3">{product.name}</td>
-                    <td className="px-4 py-2 w-1/3">{product.category}</td>
+                    <td className="px-4 py-2 w-1/3">{product.product_name}</td>
+                    <td className="px-4 py-2 w-1/3">
+                      {product.category_number}
+                    </td>
                     <td className="px-4 py-2 w-1/3">
                       {product.characteristics}
                     </td>

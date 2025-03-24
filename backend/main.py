@@ -2,11 +2,13 @@ import psycopg2
 import os
 from flask import Flask, render_template, jsonify
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 load_dotenv()
 app = Flask(__name__,
             template_folder='../frontend/templates',
             static_folder='../frontend/static')
+CORS(app)
 SUPABASE_URL = os.getenv("supabase_url")
 
 @app.route('/')
