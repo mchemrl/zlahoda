@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("All categories");
 
@@ -13,6 +14,14 @@ export default function ProductsPage() {
         setProducts(data);
       })
       .catch((error) => console.error("Error fetching products:", error));
+
+    fetch("http://127.0.0.1:5000/get_categories")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Fetched categories:", data);
+        setCategories(data);
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
   }, []);
 
   const filteredData = products.filter((product) => {
@@ -20,7 +29,7 @@ export default function ProductsPage() {
       .toLowerCase()
       .includes(productName.toLowerCase());
     const categoryMatch =
-      category === "All categories" || product.category_number === category;
+      category === "All categories" || product.category_number == category;
     return nameMatch && categoryMatch;
   });
 
@@ -61,9 +70,11 @@ export default function ProductsPage() {
             className="flex-1 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] focus:outline-none focus:ring-2 focus:ring-[#f57b20]"
           >
             <option>All categories</option>
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.category_name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -95,7 +106,9 @@ export default function ProductsPage() {
                   >
                     <td className="px-4 py-2 w-1/3">{product.product_name}</td>
                     <td className="px-4 py-2 w-1/3">
-                      {product.category_number}
+                      {categories.find(
+                        (cat) => cat.id == product.category_number
+                      )?.category_name || "Unknown"}
                     </td>
                     <td className="px-4 py-2 w-1/3">
                       {product.characteristics}
