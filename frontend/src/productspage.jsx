@@ -43,8 +43,8 @@ export default function ProductsPage() {
         <nav className="flex space-x-6 text-orange-50 text-lg font-normal font-['Kumbh_Sans']">
           <ul className="flex space-x-6">
             <li className="cursor-pointer hover:underline">Client</li>
-            <li className="cursor-pointer hover:underline">Products</li>
-            <li className="cursor-pointer hover:underline">Store Products</li>
+            <li className="cursor-pointer hover:underline"><a href="index.html">Products</a></li>
+            <li className="cursor-pointer hover:underline"><a href="store_products.html">Store Products</a></li>
             <li className="cursor-pointer hover:underline">Checks</li>
             <li className="cursor-pointer hover:underline">Profile</li>
           </ul>

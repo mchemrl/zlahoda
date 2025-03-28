@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Products</title>
+</head>
+<body>
+    <h1>Store Products</h1>
+
+    <button onclick="document.getElementById('productForm').style.display='block'">Додати продукт</button>
+
+    <div id="productForm" style="display: none;">
+        <h2>Додати новий продукт</h2>
+        <form id="addProductForm">
+            <label for="product_name">Назва продукту:</label>
+            <select id="product_name" name="product_name">
+                <option value="" disabled selected>Оберіть продукт</option>
+            </select><br><br>
+
+
+            <label for="UPC">UPC:</label>
+            <input type="text" id="UPC" name="UPC" maxlength="12"><br><br>
+
+            <label for="UPC_prom">UPC Promotion:</label>
+            <input type="text" id="UPC_prom" name="UPC_prom" maxlength="12"><br><br>
+
+            <label for="selling_price">Ціна:</label>
+            <input type="number" id="selling_price" name="selling_price"><br><br>
+
+            <label for="products_number">Кількість:</label>
+            <input type="number" id="products_number" name="products_number"><br><br>
+
+            <label for="promotional_product">Акційний товар:</label>
+            <input type="checkbox" id="promotional_product" name="promotional_product"><br><br>
+
+            <button type="button" onclick="addProduct()">Додати</button>
+            <button type="button" onclick="document.getElementById('productForm').style.display='none'">Закрити</button>
+        </form>
+    </div>
+
+    <h2>All Store Products (JSON)</h2>
+    <pre id="jsonOutput"></pre>
+
+    <script>
+        function fetchProducts() {
+            fetch("http://127.0.0.1:5000/get_products")
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+
+                    const productSelect = document.getElementById('product_name');
+                    productSelect.innerHTML = '';
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Оберіть продукт';
+                    productSelect.appendChild(defaultOption);
+
+                    data.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.id;
+                        console.log(option.value)
+                        option.textContent = product.product_name;
+                        productSelect.appendChild(option);
+                    });
+
+                    document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => console.error('Error fetching products:', error));
+        }
+
+        window.onload = function() {
+            fetchProducts();
+        };
+
+        function addProduct() {
+            const idProduct = document.getElementById('product_name').value;
+            const UPC = document.getElementById('UPC').value;
+            const UPCProm = document.getElementById('UPC_prom').value;
+            const sellingPrice = document.getElementById('selling_price').value;
+            const productsNumber = document.getElementById('products_number').value;
+            const promotionalProduct = document.getElementById('promotional_product').checked;
+
+            if (!idProduct) {
+                alert('Please select a product.');
+                return;
+            }
+
+            if (!UPC) {
+                alert('Please enter a UPC code.');
+                return;
+            }
+
+            if (!sellingPrice || !productsNumber) {
+                alert('Please provide all product details.');
+                return;
+            }
+
+            const productData = {
+                id_product: idProduct,
+                UPC: UPC,
+                UPC_prom: UPCProm,
+                selling_price: sellingPrice,
+                products_number: productsNumber,
+                promotional_product: promotionalProduct
+            };
+
+
+            console.log(productData);
+
+            fetch('http://127.0.0.1:5000/add_store_product', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(productData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('Product added successfully!');
+                    fetchProducts();
+                } else {
+                    alert('Error adding product: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
