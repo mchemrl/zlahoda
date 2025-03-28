@@ -1,22 +1,12 @@
 import psycopg2
-import os
-from flask import Flask, render_template, jsonify
-from dotenv import load_dotenv
-from flask_cors import CORS
+from flask import Blueprint, render_template, jsonify
 
-load_dotenv()
-app = Flask(__name__,
-            template_folder='../frontend/templates',
-            static_folder='../frontend/static')
-CORS(app, resources={r"/*": {"origins": "*"}})
+from backend import SUPABASE_URL
 
-SUPABASE_URL = os.getenv("supabase_url")
+queries = Blueprint('queries', __name__)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
 
-@app.route('/get_categories', methods=['GET'])
+@queries.route('/get_categories', methods=['GET'])
 def get_categories():
     try:
         conn = psycopg2.connect(SUPABASE_URL)
@@ -40,7 +30,7 @@ def get_categories():
         return jsonify({"error": str(e)})
 
 
-@app.route('/get_products', methods=['GET'])
+@queries.route('/get_products', methods=['GET'])
 def get_products():
     try:
         conn = psycopg2.connect(SUPABASE_URL)
@@ -64,6 +54,3 @@ def get_products():
 
     except Exception as e:
         return jsonify({"error": str(e)})
-
-if __name__ == '__main__':
-    app.run(debug=True)
