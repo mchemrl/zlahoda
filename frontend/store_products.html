@@ -7,12 +7,16 @@
 <body>
     <h1>Store Products</h1>
 
-    <button onclick="document.getElementById('productForm').style.display='block'">Додати продукт</button>
+    <button onclick="document.getElementById('ProductForm').style.display='block'">Додати продукт</button>
+    <button onclick="document.getElementById('deleteProductForm').style.display='block'">Видалити продукт</button>
+    <button onclick="document.getElementById('editProductForm').style.display='block'">Edit продукт</button>
 
-    <div id="productForm" style="display: none;">
+    <p><a href = 'index.html'>back</a></p>
+
+    <div id="ProductForm" style="display: none;">
         <h2>Додати новий продукт</h2>
         <form id="addProductForm">
-            <label for="product_name">Назва продукту:</label>
+            <label for="delete_product_name">Назва продукту:</label>
             <select id="product_name" name="product_name">
                 <option value="" disabled selected>Оберіть продукт</option>
             </select><br><br>
@@ -20,9 +24,6 @@
 
             <label for="UPC">UPC:</label>
             <input type="text" id="UPC" name="UPC" maxlength="12"><br><br>
-
-            <label for="UPC_prom">UPC Promotion:</label>
-            <input type="text" id="UPC_prom" name="UPC_prom" maxlength="12"><br><br>
 
             <label for="selling_price">Ціна:</label>
             <input type="number" id="selling_price" name="selling_price"><br><br>
@@ -34,9 +35,47 @@
             <input type="checkbox" id="promotional_product" name="promotional_product"><br><br>
 
             <button type="button" onclick="addProduct()">Додати</button>
-            <button type="button" onclick="document.getElementById('productForm').style.display='none'">Закрити</button>
+            <button type="button" onclick="document.getElementById('addProductForm').style.display='none'">Закрити</button>
         </form>
     </div>
+
+    <div id="deleteProductForm"  style="display: none;" >
+        <h1>Delete a product</h1>
+        <form>
+             <label for= "delete_product_name">Назва продукту:</label>
+            <select id= "delete_product_name" name="product_name">
+                <option value="" disabled selected>Оберіть продукт</option>
+            </select><br><br>
+            <button type="button" onclick="deleteProduct()">Delete</button>
+            <button type="button" onclick="document.getElementById('deleteProductForm').style.display='none'">Закрити</button>
+        </form>
+    </div>
+
+   <div id="editProductForm" style="display: none;">
+    <h2>Edit Product</h2>
+    <form>
+        <label for="edit_product_name">Назва продукту:</label>
+        <select id="edit_product_name" name="product_name" onchange="fillEditForm()">
+            <option value="" disabled selected>Оберіть продукт</option>
+        </select><br><br>
+
+        <label for="edit_UPC">UPC:</label>
+        <input type="text" id="edit_UPC" name="UPC" readonly><br><br>
+
+        <label for="edit_selling_price">Ціна:</label>
+        <input type="number" id="edit_selling_price" name="selling_price"><br><br>
+
+        <label for="edit_products_count">Кількість:</label>
+        <input type="number" id="edit_products_count" name="products_count"><br><br>
+
+        <label for="edit_promotional_product">Акційний товар:</label>
+        <input type="checkbox" id="edit_promotional_product" name="promotional_product"><br><br>
+
+        <button type="button" onclick="editProduct()">Save</button>
+        <button type="button" onclick="document.getElementById('editProductForm').style.display='none'">Закрити</button>
+    </form>
+</div>
+
 
     <h2>All Store Products (JSON)</h2>
     <pre id="jsonOutput"></pre>
@@ -67,15 +106,55 @@
                 })
                 .catch(error => console.error('Error fetching products:', error));
         }
+        function fetchStoreProducts() {
+            fetch("http://127.0.0.1:5000/get_store_products")
+            .then(response => response.json())
+            .then(data => {
+                console.log("typeof data:", typeof data);
+                console.log("data:", data);
 
+                if (!Array.isArray(data)) {
+                    throw new Error("Expected an array but got something else");
+                }
+
+                const selectIds = ['delete_product_name', 'edit_product_name'];
+                selectIds.forEach(selectId => {
+                    const selectElement = document.getElementById(selectId);
+                    if (!selectElement) return;
+
+                    selectElement.innerHTML = '';
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    defaultOption.textContent = 'Оберіть продукт';
+                    selectElement.appendChild(defaultOption);
+
+                    data.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.UPC;
+                        option.textContent = `${product.product_name} (UPC: ${product.UPC})`;
+                        selectElement.appendChild(option);
+                    });
+                });
+
+                window.storeProductsData = data;
+
+                const outputEl = document.getElementById('jsonOutput');
+                if (outputEl) {
+                    outputEl.textContent = JSON.stringify(data, null, 2);
+                }
+            })
+            .catch(error => console.error('Error fetching products:', error));
+}
         window.onload = function() {
             fetchProducts();
+            fetchStoreProducts();
         };
 
         function addProduct() {
             const idProduct = document.getElementById('product_name').value;
             const UPC = document.getElementById('UPC').value;
-            const UPCProm = document.getElementById('UPC_prom').value;
             const sellingPrice = document.getElementById('selling_price').value;
             const productsNumber = document.getElementById('products_number').value;
             const promotionalProduct = document.getElementById('promotional_product').checked;
@@ -98,7 +177,6 @@
             const productData = {
                 id_product: idProduct,
                 UPC: UPC,
-                UPC_prom: UPCProm,
                 selling_price: sellingPrice,
                 products_number: productsNumber,
                 promotional_product: promotionalProduct
@@ -127,6 +205,33 @@
                 console.error('Error:', error);
             });
         }
+        function deleteProduct() {
+        const selectedUPC = document.getElementById('delete_product_name').value;
+
+        if (!selectedUPC) {
+            alert('Please select a product to delete.');
+            return;
+        }
+
+        fetch('http://127.0.0.1:5000/delete_store_product', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ UPC: selectedUPC })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert('product deleted');
+                fetchStoreProducts();
+            } else {
+                alert('error deleting product: ' + data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+        function editProduct(){}
     </script>
 </body>
 </html>

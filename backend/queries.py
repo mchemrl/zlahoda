@@ -1,5 +1,5 @@
 import psycopg2
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, jsonify, request
 
 from backend import SUPABASE_URL
 
@@ -12,9 +12,9 @@ def get_categories():
         conn = psycopg2.connect(SUPABASE_URL)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM Category;")
+        cur.execute("select * from Category;")
         categories = cur.fetchall()
-        category_list = []
+        category_list = list()
         for row in categories:
             category_list.append({
                 "id": row[0],
@@ -36,9 +36,9 @@ def get_products():
         conn = psycopg2.connect(SUPABASE_URL)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM Product;")
+        cur.execute("select * from Product;")
         products = cur.fetchall()
-        product_list = []
+        product_list = list()
         for row in products:
             product_list.append({
                 "id": row[0],
@@ -55,6 +55,40 @@ def get_products():
     except Exception as e:
         return jsonify({"error": str(e)})
 
+@queries.route('/get_store_products', methods=['GET'])
+def get_store_products():
+    try:
+        conn = psycopg2.connect(SUPABASE_URL)
+        cur = conn.cursor()
+
+        query = '''
+        select sp.UPC, sp.UPC_prom, sp.id_product, sp.selling_price, sp.products_number, sp.promotional_product, p.product_name
+        FROM store_product sp
+        JOIN product p ON sp.id_product = p.id_product
+        '''
+        cur.execute(query)
+
+        store_products = cur.fetchall()
+        store_product_list = []
+        for row in store_products:
+            store_product_list.append({
+                'UPC': row[0],
+                'UPC_prom': row[1],
+                'id_product': row[2],
+                'selling_price': row[3],
+                'products_number': row[4],
+                'promotional_product': row[5],
+                'product_name': row[6]
+            })
+
+        cur.close()
+        conn.close()
+
+        return jsonify(store_product_list), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @queries.route('/add_store_product', methods=['POST'])
 def add_store_product():
     try:
@@ -65,6 +99,9 @@ def add_store_product():
         selling_price = data.get('selling_price')
         products_number = data.get('products_number')
         promotional_product = data.get('promotional_product', False)
+
+        if promotional_product:
+            UPC_prom = UPC
 
         if not id_product or not UPC or not selling_price or not products_number:
             return jsonify({"error": "Missing required fields"}), 400
@@ -91,6 +128,28 @@ def add_store_product():
         conn.close()
 
         return jsonify({"message": "Product added successfully!"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@queries.route('/delete_store_product', methods=['DELETE'])
+def delete_store_product():
+    try:
+        data = request.get_json()
+        upc = data.get('UPC')
+
+        if not upc:
+            return jsonify({"error": "UPC is required"}), 400
+
+        conn = psycopg2.connect(SUPABASE_URL)
+        cur = conn.cursor()
+
+        query = 'delete from store_product where UPC = %s'
+        cur.execute(query, (upc,))
+        conn.commit()
+        cur.close()
+
+        return jsonify({"message": "product deleted!"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
