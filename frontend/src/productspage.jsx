@@ -59,6 +59,27 @@ export default function ProductsPage() {
       })
       .catch((error) => console.error("Error deleting product:", error));
   };
+  const handleFilter = () => {
+    fetch("http://127.0.0.1:5000/get_products")
+      .then((response) => response.json())
+      .then((data) => {
+        let filteredProducts = data;
+        if (productName.trim()) {
+          filteredProducts = filteredProducts.filter((product) =>
+            product.product_name
+              .toLowerCase()
+              .includes(productName.toLowerCase())
+          );
+        }
+        if (category !== "All categories") {
+          filteredProducts = filteredProducts.filter(
+            (product) => product.category_number == category
+          );
+        }
+        setProducts(filteredProducts);
+      })
+      .catch((error) => console.error("Error filtering products:", error));
+  };
 
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
@@ -82,20 +103,26 @@ export default function ProductsPage() {
             placeholder="Search by product name"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
-            className="flex-1 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] placeholder-[#f57b20]"
+            className="flex-2 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] placeholder-[#f57b20]"
           />
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="flex-1 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
+            className="flex-2 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
           >
             <option>All categories</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
+              <option className="w-full" key={cat.id} value={cat.id}>
                 {cat.category_name}
               </option>
             ))}
           </select>
+          <button
+            onClick={handleFilter}
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer"
+          >
+            Filter
+          </button>
         </div>
 
         <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
