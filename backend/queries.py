@@ -12,7 +12,7 @@ def get_categories():
         conn = psycopg2.connect(SUPABASE_URL)
         cur = conn.cursor()
 
-        cur.execute("select * from Category;")
+        cur.execute("select * from category;")
         categories = cur.fetchall()
         category_list = list()
         for row in categories:
@@ -29,14 +29,13 @@ def get_categories():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-
 @queries.route('/get_products', methods=['GET'])
 def get_products():
     try:
         conn = psycopg2.connect(SUPABASE_URL)
         cur = conn.cursor()
 
-        cur.execute("select * from Product;")
+        cur.execute("select * from product;")
         products = cur.fetchall()
         product_list = list()
         for row in products:
@@ -63,8 +62,8 @@ def get_store_products():
 
         query = '''
         select sp.UPC, sp.UPC_prom, sp.id_product, sp.selling_price, sp.products_number, sp.promotional_product, p.product_name
-        FROM store_product sp
-        JOIN product p ON sp.id_product = p.id_product
+        from store_product sp
+        join product p on sp.id_product = p.id_product
         '''
         cur.execute(query)
 
@@ -88,7 +87,6 @@ def get_store_products():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @queries.route('/add_store_product', methods=['POST'])
 def add_store_product():
     try:
@@ -110,8 +108,8 @@ def add_store_product():
         cur = conn.cursor()
 
         query = """
-               INSERT INTO store_product (UPC, UPC_prom, id_product, selling_price, products_number, promotional_product)
-               VALUES (%s, %s, %s, %s, %s, %s)
+               insert into store_product (UPC, UPC_prom, id_product, selling_price, products_number, promotional_product)
+               values (%s, %s, %s, %s, %s, %s)
                """
 
         cur.execute(query, (
@@ -150,6 +148,48 @@ def delete_store_product():
         cur.close()
 
         return jsonify({"message": "product deleted!"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@queries.route('/update_store_product', methods=['PUT'])
+def update_store_product():
+    try:
+        data = request.get_json()
+        old_upc = data.get('old_UPC')
+        new_upc = data.get('new_UPC')
+        id_product = data.get('id_product')
+        selling_price = data.get('selling_price')
+        products_number = data.get('products_number')
+        promotional_product = data.get('promotional_product')
+
+        print(old_upc)
+        print(new_upc)
+        print(id_product)
+        print(selling_price)
+
+        conn = psycopg2.connect(SUPABASE_URL)
+        cur = conn.cursor()
+        query = '''
+        update Store_product
+        set UPC = %s,
+            id_product = %s,
+            selling_price = %s,
+            products_number = %s,
+            promotional_product = %s,
+            UPC_prom = case 
+                          when %s then %s
+                          else UPC_prom
+                      end
+        where UPC = %s
+        '''
+
+        cur.execute(query, (new_upc, id_product, selling_price, products_number, promotional_product,
+                            promotional_product, new_upc, old_upc))
+        conn.commit()
+        cur.close()
+
+        return jsonify({"message": "product updated !!"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

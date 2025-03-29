@@ -21,7 +21,6 @@
                 <option value="" disabled selected>Оберіть продукт</option>
             </select><br><br>
 
-
             <label for="UPC">UPC:</label>
             <input type="text" id="UPC" name="UPC" maxlength="12"><br><br>
 
@@ -39,11 +38,11 @@
         </form>
     </div>
 
-    <div id="deleteProductForm"  style="display: none;" >
+    <div id="deleteProductForm" style="display: none;">
         <h1>Delete a product</h1>
         <form>
-             <label for= "delete_product_name">Назва продукту:</label>
-            <select id= "delete_product_name" name="product_name">
+            <label for="delete_product_name">Назва продукту:</label>
+            <select id="delete_product_name" name="product_name">
                 <option value="" disabled selected>Оберіть продукт</option>
             </select><br><br>
             <button type="button" onclick="deleteProduct()">Delete</button>
@@ -51,36 +50,39 @@
         </form>
     </div>
 
-   <div id="editProductForm" style="display: none;">
-    <h2>Edit Product</h2>
-    <form>
-        <label for="edit_product_name">Назва продукту:</label>
-        <select id="edit_product_name" name="product_name" onchange="fillEditForm()">
-            <option value="" disabled selected>Оберіть продукт</option>
-        </select><br><br>
+    <div id="editProductForm" style="display: none;">
+        <h2>Edit Product</h2>
+        <form>
+            <label for="edit_product_name">Назва продукту:</label>
+            <select id="edit_product_name" name="product_name" onchange="fillEditForm()">
+                <option value="" disabled selected>Оберіть продукт</option>
+            </select><br><br>
 
-        <label for="edit_UPC">UPC:</label>
-        <input type="text" id="edit_UPC" name="UPC" readonly><br><br>
+            <label for="edit_UPC">UPC:</label>
+            <input type="text" id="edit_UPC" name="UPC"><br><br>
 
-        <label for="edit_selling_price">Ціна:</label>
-        <input type="number" id="edit_selling_price" name="selling_price"><br><br>
+            <label for="edit_selling_price">Ціна:</label>
+            <input type="number" id="edit_selling_price" name="selling_price"><br><br>
 
-        <label for="edit_products_count">Кількість:</label>
-        <input type="number" id="edit_products_count" name="products_count"><br><br>
+            <label for="edit_products_count">Кількість:</label>
+            <input type="number" id="edit_products_count" name="products_count"><br><br>
 
-        <label for="edit_promotional_product">Акційний товар:</label>
-        <input type="checkbox" id="edit_promotional_product" name="promotional_product"><br><br>
+            <label for="edit_promotional_product">Акційний товар:</label>
+            <input type="checkbox" id="edit_promotional_product" name="promotional_product"><br><br>
 
-        <button type="button" onclick="editProduct()">Save</button>
-        <button type="button" onclick="document.getElementById('editProductForm').style.display='none'">Закрити</button>
-    </form>
-</div>
+            <input type="hidden" id="original_UPC" name="original_UPC" value="">
 
+            <button type="button" onclick="editProduct()">Save</button>
+            <button type="button" onclick="document.getElementById('editProductForm').style.display='none'">Закрити</button>
+        </form>
+    </div>
 
     <h2>All Store Products (JSON)</h2>
     <pre id="jsonOutput"></pre>
 
     <script>
+        let storeProductsData = [];
+
         function fetchProducts() {
             fetch("http://127.0.0.1:5000/get_products")
                 .then(response => response.json())
@@ -106,51 +108,38 @@
                 })
                 .catch(error => console.error('Error fetching products:', error));
         }
+
         function fetchStoreProducts() {
             fetch("http://127.0.0.1:5000/get_store_products")
-            .then(response => response.json())
-            .then(data => {
-                console.log("typeof data:", typeof data);
-                console.log("data:", data);
+                .then(response => response.json())
+                .then(data => {
+                    storeProductsData = data;
 
-                if (!Array.isArray(data)) {
-                    throw new Error("Expected an array but got something else");
-                }
+                    const selectIds = ['delete_product_name', 'edit_product_name'];
+                    selectIds.forEach(selectId => {
+                        const selectElement = document.getElementById(selectId);
+                        if (!selectElement) return;
 
-                const selectIds = ['delete_product_name', 'edit_product_name'];
-                selectIds.forEach(selectId => {
-                    const selectElement = document.getElementById(selectId);
-                    if (!selectElement) return;
+                        selectElement.innerHTML = '';
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.disabled = true;
+                        defaultOption.selected = true;
+                        defaultOption.textContent = 'Оберіть продукт';
+                        selectElement.appendChild(defaultOption);
 
-                    selectElement.innerHTML = '';
-                    const defaultOption = document.createElement('option');
-                    defaultOption.value = '';
-                    defaultOption.disabled = true;
-                    defaultOption.selected = true;
-                    defaultOption.textContent = 'Оберіть продукт';
-                    selectElement.appendChild(defaultOption);
-
-                    data.forEach(product => {
-                        const option = document.createElement('option');
-                        option.value = product.UPC;
-                        option.textContent = `${product.product_name} (UPC: ${product.UPC})`;
-                        selectElement.appendChild(option);
+                        data.forEach(product => {
+                            const option = document.createElement('option');
+                            option.value = product.UPC;
+                            option.textContent = `${product.product_name} (UPC: ${product.UPC})`;
+                            selectElement.appendChild(option);
+                        });
                     });
-                });
 
-                window.storeProductsData = data;
-
-                const outputEl = document.getElementById('jsonOutput');
-                if (outputEl) {
-                    outputEl.textContent = JSON.stringify(data, null, 2);
-                }
-            })
-            .catch(error => console.error('Error fetching products:', error));
-}
-        window.onload = function() {
-            fetchProducts();
-            fetchStoreProducts();
-        };
+                    document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => console.error('Error fetching store products:', error));
+        }
 
         function addProduct() {
             const idProduct = document.getElementById('product_name').value;
@@ -182,21 +171,16 @@
                 promotional_product: promotionalProduct
             };
 
-
-            console.log(productData);
-
             fetch('http://127.0.0.1:5000/add_store_product', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(productData)
             })
             .then(response => response.json())
             .then(data => {
                 if (data.message) {
                     alert('Product added successfully!');
-                    fetchProducts();
+                    fetchStoreProducts();
                 } else {
                     alert('Error adding product: ' + data.error);
                 }
@@ -205,33 +189,96 @@
                 console.error('Error:', error);
             });
         }
-        function deleteProduct() {
-        const selectedUPC = document.getElementById('delete_product_name').value;
 
-        if (!selectedUPC) {
-            alert('Please select a product to delete.');
-            return;
+        function deleteProduct() {
+            const selectedUPC = document.getElementById('delete_product_name').value;
+
+            if (!selectedUPC) {
+                alert('Please select a product to delete.');
+                return;
+            }
+
+            fetch('http://127.0.0.1:5000/delete_store_product', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ UPC: selectedUPC })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('Product deleted');
+                    fetchStoreProducts();
+                } else {
+                    alert('Error deleting product: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
-        fetch('http://127.0.0.1:5000/delete_store_product', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ UPC: selectedUPC })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                alert('product deleted');
-                fetchStoreProducts();
-            } else {
-                alert('error deleting product: ' + data.error);
+        function fillEditForm() {
+            const selectedUPC = document.getElementById('edit_product_name').value;
+            const product = storeProductsData.find(p => p.UPC === selectedUPC);
+
+            if (product) {
+                document.getElementById('edit_UPC').value = product.UPC;
+                document.getElementById('original_UPC').value = product.UPC; // store the old UPC
+                document.getElementById('edit_selling_price').value = product.selling_price;
+                document.getElementById('edit_products_count').value = product.products_number;
+                document.getElementById('edit_promotional_product').checked = product.promotional_product;
+                document.getElementById('editProductForm').style.display = 'block';
             }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-        function editProduct(){}
+        }
+
+        function editProduct() {
+            const oldUPC = document.getElementById('original_UPC').value;
+            const newUPC = document.getElementById('edit_UPC').value;
+            const newPrice = document.getElementById('edit_selling_price').value;
+            const newCount = document.getElementById('edit_products_count').value;
+            const isPromotional = document.getElementById('edit_promotional_product').checked;
+
+            if (!oldUPC) {
+                alert("Something went wrong. Try selecting the product again.");
+                return;
+            }
+
+            if (!newUPC || !newPrice || !newCount) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            const payload = {
+                old_upc: oldUPC,
+                new_upc: newUPC,
+                selling_price: newPrice,
+                products_number: newCount,
+                promotional_product: isPromotional
+            };
+            console.log(payload);
+            fetch('http://127.0.0.1:5000/update_store_product', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert("Product updated successfully!");
+                    fetchStoreProducts();
+                    document.getElementById('editProductForm').style.display = 'none';
+                } else {
+                    alert("Error updating product: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error editing product:", error);
+                alert("Something went wrong while updating the product.");
+            });
+        }
+
+        window.onload = function() {
+            fetchProducts();
+            fetchStoreProducts();
+        };
     </script>
 </body>
 </html>
