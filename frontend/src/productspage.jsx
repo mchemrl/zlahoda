@@ -191,29 +191,16 @@ export default function ProductsPage() {
                 </option>
               ))}
             </select>
-            <textarea
-              value={selectedProduct.characteristics}
+            <textarea value={selectedProduct.characteristics}
               onChange={(e) =>
                 setSelectedProduct({
                   ...selectedProduct,
                   characteristics: e.target.value,
                 })
-              }
-              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
-            ></textarea>
+              } className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"></textarea>
             <div className="flex justify-between">
-              <button
-                onClick={handleDeleteProduct}
-                className="bg-red-500 text-white px-4 py-2 rounded"
-              >
-                Delete
-              </button>
-              <button
-                onClick={handleSaveChanges}
-                className="bg-[#f57b20] text-white px-4 py-2 rounded"
-              >
-                Save changes
-              </button>
+              <button onClick={handleDeleteProduct} className="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
+              <button onClick={handleSaveChanges} className="bg-[#f57b20] text-white px-4 py-2 rounded">Update</button>
             </div>
           </div>
         </div>

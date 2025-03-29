@@ -190,7 +190,7 @@
             });
         }
 
-        function deleteProduct() {
+       function deleteProduct() {
             const selectedUPC = document.getElementById('delete_product_name').value;
 
             if (!selectedUPC) {
@@ -198,10 +198,9 @@
                 return;
             }
 
-            fetch('http://127.0.0.1:5000/delete_store_product', {
+            fetch(`http://127.0.0.1:5000/delete_store_product/${selectedUPC}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ UPC: selectedUPC })
             })
             .then(response => response.json())
             .then(data => {
@@ -212,8 +211,12 @@
                     alert('Error deleting product: ' + data.error);
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Something went wrong while deleting the product.');
+            });
         }
+
 
         function fillEditForm() {
             const selectedUPC = document.getElementById('edit_product_name').value;
@@ -254,7 +257,10 @@
                 promotional_product: isPromotional
             };
             console.log(payload);
-            fetch('http://127.0.0.1:5000/update_store_product', {
+
+            const id_product = document.getElementById('product_id').value;
+
+            fetch(`http://127.0.0.1:5000/update_store_product/${id_product}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
