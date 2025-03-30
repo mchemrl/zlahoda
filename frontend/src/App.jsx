@@ -1,15 +1,15 @@
-import "./App.css";
-import axios from "axios";
-
 import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Login from "./loginpage";
 import ProductsPage from "./productspage";
+import StoreProducts from "./storeproducts";
 
-function App() {
+export default function App() {
   return (
-    <div>
-      <ProductsPage />
-    </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/products" element={<ProductsPage />} />
+      <Route path="/store-products" element={<StoreProducts />} />
+    </Routes>
   );
 }
-
-export default App;

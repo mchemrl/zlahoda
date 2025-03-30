@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -88,8 +89,12 @@ export default function ProductsPage() {
         <nav className="flex space-x-6 text-orange-50 text-lg">
           <ul className="flex space-x-6">
             <li className="cursor-pointer hover:underline">Client</li>
-            <li className="cursor-pointer hover:underline"><a href="index.html">Products</a></li>
-            <li className="cursor-pointer hover:underline"><a href="store_products.html">Store Products</a></li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/products">Products</Link>
+            </li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/store-products">Store Products</Link>
+            </li>
             <li className="cursor-pointer hover:underline">Checks</li>
             <li className="cursor-pointer hover:underline">Profile</li>
           </ul>
@@ -119,7 +124,7 @@ export default function ProductsPage() {
           </select>
           <button
             onClick={handleFilter}
-            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer"
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
           >
             Filter
           </button>
@@ -159,7 +164,7 @@ export default function ProductsPage() {
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
               onClick={closeEditModal}
-              className="absolute top-4 right-4 text-[#f57b20]"
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
             >
               ✕
             </button>
@@ -191,16 +196,29 @@ export default function ProductsPage() {
                 </option>
               ))}
             </select>
-            <textarea value={selectedProduct.characteristics}
+            <textarea
+              value={selectedProduct.characteristics}
               onChange={(e) =>
                 setSelectedProduct({
                   ...selectedProduct,
                   characteristics: e.target.value,
                 })
-              } className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"></textarea>
+              }
+              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+            ></textarea>
             <div className="flex justify-between">
-              <button onClick={handleDeleteProduct} className="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
-              <button onClick={handleSaveChanges} className="bg-[#f57b20] text-white px-4 py-2 rounded">Update</button>
+              <button
+                onClick={handleDeleteProduct}
+                className="bg-red-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-red-700"
+              >
+                Delete
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                className="bg-[#f57b20] text-white px-4 py-2 rounded cursor-pointer hover:bg-[#db6c1c]"
+              >
+                Update
+              </button>
             </div>
           </div>
         </div>
