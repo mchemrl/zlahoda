@@ -85,7 +85,12 @@ export default function ProductsPage() {
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <header className="w-screen h-24 bg-orange-500 bg-opacity-75 shadow-lg flex justify-between items-center px-6">
-        <div className="text-orange-50 text-3xl">Zlahoda</div>
+        <div className="text-orange-50 text-3xl">Zlahoda
+         <img
+            src="static/bumbastik_thumbs.gif"
+            alt="Loading GIF"
+            className="absolute right-332 top-3 w-15 h-15"
+          /></div>
         <nav className="flex space-x-6 text-orange-50 text-lg">
           <ul className="flex space-x-6">
             <li className="cursor-pointer hover:underline">Client</li>
@@ -156,6 +161,7 @@ export default function ProductsPage() {
               ))}
             </tbody>
           </table>
+
         </div>
       </main>
 

@@ -1,8 +1,6 @@
 import psycopg2
 from flask import Blueprint, jsonify, request
-
 from backend import SUPABASE_URL
-from flask_cors import CORS, cross_origin
 
 queries = Blueprint('queries', __name__)
 

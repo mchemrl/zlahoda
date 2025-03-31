@@ -64,7 +64,14 @@ export default function LoginPage() {
 
       {/* Right side: Shopping cart pattern */}
       <div className="bg-[#F57B20] flex justify-center items-center relative">
-        <div className="absolute inset-0 opacity-20 bg-repeat bg-[url('/cart-pattern.png')]"></div>
+        <div className="absolute inset-0  bg-repeat bg-[url('/cart-pattern.png')]">
+
+         <img
+            src="static/bumbastik_gift.gif"
+            alt="Loading GIF"
+            className="absolute inset-0 m-auto w-90 h-90"
+          />
+        </div>
       </div>
     </div>
   );

@@ -108,7 +108,7 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            return redirect(url_for('index'))
+            return redirect(url_for('loginpage'))
         return view(**kwargs)
 
     return wrapped_view
