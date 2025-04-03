@@ -1,31 +1,11 @@
 import psycopg2
 from flask import Blueprint, jsonify, request
 from backend import SUPABASE_URL
+from backend.auth import login_required
+from backend.db import open_connection
 
 queries = Blueprint('queries', __name__)
 
-@queries.route('/get_categories', methods=['GET'])
-def get_categories():
-    try:
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
-
-        cur.execute("select * from category;")
-        categories = cur.fetchall()
-        category_list = list()
-        for row in categories:
-            category_list.append({
-                "id": row[0],
-                "category_name": row[1]
-            })
-
-        cur.close()
-        conn.close()
-
-        return jsonify(category_list)
-
-    except Exception as e:
-        return jsonify({'error': str(e)})
 
 @queries.route('/get_products', methods=['GET'])
 def get_products():
@@ -52,10 +32,13 @@ def get_products():
     except Exception as e:
         return jsonify({'error': str(e)})
 
+
+
 @queries.route('/get_store_products', methods=['GET'])
+@login_required
 def get_store_products():
     try:
-        conn = psycopg2.connect(SUPABASE_URL)
+        conn = open_connection()
         cur = conn.cursor()
 
         query = '''
@@ -84,6 +67,7 @@ def get_store_products():
         return jsonify(store_product_list), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @queries.route('/add_store_product', methods=['POST'])
 def add_store_product():
@@ -128,6 +112,7 @@ def add_store_product():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @queries.route('/delete_store_product/<string:upc>', methods=['DELETE'])
 def delete_store_product():
     try:
@@ -146,6 +131,7 @@ def delete_store_product():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @queries.route('/update_store_product/<string:upc>', methods=['PUT'])
 def update_store_product():
@@ -184,6 +170,7 @@ def update_store_product():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @queries.route('/add_product', methods=['POST'])
 def add_product():
     try:
@@ -192,7 +179,6 @@ def add_product():
         category_number = data.get('category_number')
         product_name = data.get('product_name')
         characteristics = data.get('characteristics')
-
 
         if not id_product or not category_number or not product_name or not characteristics:
             return jsonify({'error': 'mssing required fields'}), 400
@@ -215,6 +201,7 @@ def add_product():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @queries.route('/delete_product/<int:id_product>', methods=['DELETE'])
 def delete_product(id_product):
     try:
@@ -230,6 +217,7 @@ def delete_product(id_product):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @queries.route('/update_product/<int:id_product>', methods=['PUT'])
 def update_product(id_product):
@@ -258,7 +246,8 @@ def update_product(id_product):
 
         cur.close()
 
-        return jsonify({'id': id_product, 'category_number': category_number, 'product_name': product_name, 'characteristics': characteristics}), 200
+        return jsonify({'id': id_product, 'category_number': category_number, 'product_name': product_name,
+                        'characteristics': characteristics}), 200
 
     except Exception as e:
         print(f"Error: {str(e)}")
