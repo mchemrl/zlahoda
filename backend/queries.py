@@ -6,6 +6,28 @@ from backend.db import open_connection
 
 queries = Blueprint('queries', __name__)
 
+@queries.route('/get_categories', methods=['GET'])
+def get_categories():
+    try:
+        conn = psycopg2.connect(SUPABASE_URL)
+        cur = conn.cursor()
+
+        cur.execute("select * from category;")
+        categories = cur.fetchall()
+        category_list = list()
+        for row in categories:
+            category_list.append({
+                "id": row[0],
+                "category_name": row[1]
+            })
+
+        cur.close()
+        conn.close()
+
+        return jsonify(category_list)
+
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @queries.route('/get_products', methods=['GET'])
 def get_products():
