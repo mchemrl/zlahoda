@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 
-from backend.api.auth import login_required, cashier_required
 from backend.db import get_connection
 
 queries = Blueprint('queries', __name__)
