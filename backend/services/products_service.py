@@ -3,8 +3,8 @@ from backend.db import get_connection
 
 def fetch_products(category=None, search=None):
     base_query = 'select * from product'
-    conditions = list()
-    parameters = list()
+    conditions = []
+    parameters = []
 
     if category is not None:
         conditions.append("category_number = %s")
@@ -19,10 +19,10 @@ def fetch_products(category=None, search=None):
 
     base_query += " order by product_name;"
 
-    cur = get_connection().cursor()
-    cur.execute(base_query, tuple(parameters))
-    products = cur.fetchall()
-    cur.close()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(base_query, tuple(parameters))
+            products = cur.fetchall()
 
     return [
         {
@@ -33,7 +33,6 @@ def fetch_products(category=None, search=None):
         }
         for row in products
     ]
-
 
 def fetch_product(id_product):
     with get_connection() as conn:
@@ -51,6 +50,7 @@ def fetch_product(id_product):
                 }
             else:
                 return None
+
 
 
 def create_product(id_product, category_number, product_name, characteristics):
