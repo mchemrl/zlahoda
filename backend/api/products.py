@@ -1,3 +1,4 @@
+import psycopg2
 from flask import Blueprint, request, jsonify
 
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
@@ -52,7 +53,15 @@ def delete_product():
     if not product:
         return jsonify({'error': 'product not found'}), 404
 
-    dump_product(id_product)
+    try:
+        dump_product(id_product)
+        return jsonify({'message': 'product deleted!'}), 200
+    except psycopg2.IntegrityError as e:
+        if 'foreign key constraint' in str(e).lower():
+            return jsonify({'error': 'cannot delete product because it has associated store products'}), 400
+        else:
+            return jsonify({'error': 'database error: ' + str(e)}), 500
+
     return jsonify({'message': 'product deleted!'}), 200
 
 @product.route('/', methods=['PUT'])
@@ -60,6 +69,10 @@ def update_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
         return jsonify({'error': 'missing id_product'}), 400
+
+    product = fetch_product(id_product)
+    if not product:
+        return jsonify({'error': 'product not found'}), 404
 
     data = request.json
     category_number = data.get('category_number')
