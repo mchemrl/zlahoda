@@ -19,6 +19,7 @@ def create_app():
     app.register_blueprint(api, url_prefix='/')
     app.register_blueprint(queries, url_prefix='/')
 
+
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     app.teardown_appcontext(close_connection)
