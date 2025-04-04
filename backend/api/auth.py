@@ -8,8 +8,8 @@ from backend.services.auth_service import get_user, get_employee, add_user
 
 auth = Blueprint('auth', __name__)
 
-@auth.route('/register', methods=('POST',))
-#@manager_required
+@auth.route('/register', methods=['POST'])
+@manager_required
 def register():
     data = request.json
     employee = data.get('employee')
@@ -29,7 +29,7 @@ def register():
     return jsonify({'message': 'user created successfully'}), 201
 
 
-@auth.route('/login', methods=('GET',))
+@auth.route('/login', methods=['GET'])
 def get_login():
     if g.user is None:
         return jsonify({'error': 'not logged in'}), 400
@@ -41,59 +41,58 @@ def get_login():
         'role': employee[0],
         'empl_surname': employee[1],
         'empl_name': employee[2],
-        'empl_patronymic': employee[3]}), 200
+        'empl_patronymic': employee[3]
+    }), 200
 
 
-@auth.route('/login', methods=('POST',))
+@auth.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        if g.user is not None:
-            return jsonify({'error': 'already logged in'}), 400
+    if g.user is not None:
+        return jsonify({'error': 'already logged in'}), 400
 
-        data = request.json
-        username = data.get('username')
-        password = data.get('password')
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
-        if not username:
-            return jsonify({'error': 'username is required'}), 400
-        elif not password:
-            return jsonify({'error': 'password is required'}), 400
+    if not username:
+        return jsonify({'error': 'username is required'}), 400
+    elif not password:
+        return jsonify({'error': 'password is required'}), 400
 
-        user = get_user(username)
+    user = get_user(username)
+    if user is None or not check_password_hash(user[2], password):
+        return jsonify({'error': 'incorrect username or password'}), 400
 
-        if user is None or not check_password_hash(user[2], password):
-            return jsonify({'error': 'incorrect username or password'}), 400
-
-        employee = get_employee(user[0])
-
-        session.clear()
-        session['user_id'] = user[0]
-        session['role'] = employee[0] if employee[0] else None
-        return jsonify({
-            'user_id': user[0],
-            'role': employee[0],
-            'empl_surname': employee[1],
-            'empl_name': employee[2],
-            'empl_patronymic': employee[3]}), 200
+    employee = get_employee(user[0])
+    session.clear()
+    session['user_id'] = user[0]
+    session['role'] = employee[0] if employee[0] else None
+    return jsonify({
+        'user_id': user[0],
+        'role': employee[0],
+        'empl_surname': employee[1],
+        'empl_name': employee[2],
+        'empl_patronymic': employee[3]
+    }), 200
 
 
 @auth.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
-
     if user_id is None:
         g.user = None
     else:
-        cur = get_connection().cursor()
-        query = '''
-        SELECT * FROM "user" WHERE user_id = %s
-        '''
-        cur.execute(query, (user_id,))
-        g.user = cur.fetchone()
-        cur.close()
+        with get_connection() as conn:
+            if conn is not None:
+                with conn.cursor() as cur:
+                    query = '''SELECT * FROM "user" WHERE user_id = %s'''
+                    cur.execute(query, (user_id,))
+                    g.user = cur.fetchone()
+            else:
+                g.user = None
 
 
-@auth.route('/logout', methods=('POST',))
+@auth.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'message': 'logged out successfully'}), 200
