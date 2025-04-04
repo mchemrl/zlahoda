@@ -1,26 +1,33 @@
+import psycopg2
 from flask import Blueprint, request, jsonify
 
-from .. import services
-from ..services import products_service
-from ..services.products_service import get_products, get_product, update_product, delete_product, add_product
+from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
-product = Blueprint('product', __name__)
+product = Blueprint('products', __name__)
 
-@product.route('/products', methods=['GET'])
+@product.route('/', methods=['GET'])
 def get_products():
     category = request.args.get('category')
     search = request.args.get('search')
 
-    products = get_products(category, search)
+    products = fetch_products(category, search)
     return jsonify(products)
 
 
-@product.route('/products/<int:id_product>', methods = ('GET',))
-def get_product(id_product):
-    product = get_product(id_product)
-    return jsonify(product)
+@product.route('/', methods=['GET'])
+def get_product():
+    id_product = request.args.get('id_product', type=int)
+    if not id_product:
+        return jsonify({'error': 'missing id_product'}), 400
 
-@product.route('/products', methods=['POST'])
+    product = fetch_product(id_product)
+    if product:
+        return jsonify(product)
+    else:
+        return jsonify({'error': 'product not found'}), 404
+
+
+@product.route('/', methods=('POST',))
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -31,16 +38,42 @@ def add_product():
     if not id_product or not category_number or not product_name or not characteristics:
         return jsonify({'error': 'missing required fields'}), 400
 
-    add_product(id_product, category_number, product_name, characteristics)
-    return jsonify({"message": "product added"}), 201
+    create_product(id_product, category_number, product_name, characteristics);
 
-@product.route('/products/<int:id_product>', methods=['DELETE'])
-def delete_product(id_product):
-    delete_product(id_product)
+    return jsonify({'message': 'product added!'}), 200
+
+
+@product.route('/', methods=['DELETE'])
+def delete_product():
+    id_product = request.args.get('id_product', type=int)
+    if not id_product:
+        return jsonify({'error': 'missing id_fsfsproduct'}), 400
+
+    product = fetch_product(id_product)
+    if not product:
+        return jsonify({'error': 'product not found'}), 404
+
+    try:
+        dump_product(id_product)
+        return jsonify({'message': 'product deleted!'}), 200
+    except psycopg2.IntegrityError as e:
+        if 'foreign key constraint' in str(e).lower():
+            return jsonify({'error': 'cannot delete product because it has associated store products'}), 400
+        else:
+            return jsonify({'error': 'database error: ' + str(e)}), 500
+
     return jsonify({'message': 'product deleted!'}), 200
 
-@product.route('/products/<int:id_product>', methods=['PUT'])
-def update_product(id_product):
+@product.route('/', methods=['PUT'])
+def update_product():
+    id_product = request.args.get('id_product', type=int)
+    if not id_product:
+        return jsonify({'error': 'missing id_product'}), 400
+
+    product = fetch_product(id_product)
+    if not product:
+        return jsonify({'error': 'product not found'}), 404
+
     data = request.json
     category_number = data.get('category_number')
     product_name = data.get('product_name')
@@ -49,12 +82,11 @@ def update_product(id_product):
     if not category_number or not product_name or not characteristics:
         return jsonify({'error': 'missing required fields'}), 400
 
-    update_product(id_product, category_number, product_name, characteristics)
+    edit_product(id_product, category_number, product_name, characteristics)
     return jsonify({
         'id': id_product,
         'category_number': category_number,
         'product_name': product_name,
         'characteristics': characteristics
     }), 200
-
 

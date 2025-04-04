@@ -7,4 +7,4 @@ api = Blueprint('api', __name__, url_prefix='/api')
 
 api.register_blueprint(auth, url_prefix='/auth')
 api.register_blueprint(categories, url_prefix='/categories')
-api.register_blueprint(product, url_prefix='/product')
+api.register_blueprint(product, url_prefix='/products')
