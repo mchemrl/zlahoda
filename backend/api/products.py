@@ -1,19 +1,26 @@
 from flask import Blueprint, request, jsonify
-from ..services.product_service import get_products, get_product, update_product, delete_product, add_product
+
+from .. import services
+from ..services import products_service
+from ..services.products_service import get_products, get_product, update_product, delete_product, add_product
 
 product = Blueprint('product', __name__)
 
-@product.route('/product', methods = ('GET',))
+@product.route('/products', methods=['GET'])
 def get_products():
-    product_list = get_products()
-    return jsonify(product_list)
+    category = request.args.get('category')
+    search = request.args.get('search')
 
-@product.route('/product/<int:id_product>', methods = ('GET',))
+    products = get_products(category, search)
+    return jsonify(products)
+
+
+@product.route('/products/<int:id_product>', methods = ('GET',))
 def get_product(id_product):
     product = get_product(id_product)
     return jsonify(product)
 
-@product.route('/product', methods=['POST'])
+@product.route('/products', methods=['POST'])
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -27,12 +34,12 @@ def add_product():
     add_product(id_product, category_number, product_name, characteristics)
     return jsonify({"message": "product added"}), 201
 
-@product.route('/product/<int:id_product>', methods=['DELETE'])
+@product.route('/products/<int:id_product>', methods=['DELETE'])
 def delete_product(id_product):
     delete_product(id_product)
     return jsonify({'message': 'product deleted!'}), 200
 
-@product.route('/product/<int:id_product>', methods=['PUT'])
+@product.route('/products/<int:id_product>', methods=['PUT'])
 def update_product(id_product):
     data = request.json
     category_number = data.get('category_number')
