@@ -34,55 +34,52 @@ def fetch_products(category=None, search=None):
         for row in products
     ]
 
+
 def fetch_product(id_product):
-    cur = get_connection().cursor()
-    query = 'select * from product where id_product = %s'
-    cur.execute(query, (id_product,))
-    product = cur.fetchone()
-    if product:
-        return {
-            "id": product[0],
-            "category_number": product[1],
-            "product_name": product[2],
-        }
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            query = 'select * from product where id_product = %s'
+            cur.execute(query, (id_product,))
+            product = cur.fetchone()
+
+            if product:
+                return {
+                    "id": product[0],
+                    "category_number": product[1],
+                    "product_name": product[2],
+                    "characteristics": product[3]
+                }
+            else:
+                return None
 
 
 def create_product(id_product, category_number, product_name, characteristics):
     with get_connection() as conn:
-        if conn is None:
-            print("Failed to connect to the database.")
-            return
-
-        try:
-            with conn.cursor() as cur:
-                query = """
-                    INSERT INTO product (id_product, category_number, product_name, characteristics)
-                    VALUES (%s, %s, %s, %s) 
-                """
-                cur.execute(query, (id_product, category_number, product_name, characteristics))
-                conn.commit()
-                print("Product added successfully!")
-
-        except Exception as e:
-            print(f"Error while adding product: {e}")
+        with conn.cursor() as cur:
+            query = """
+                insert into product (id_product, category_number, product_name, characteristics)
+                values (%s, %s, %s, %s) 
+            """
+            cur.execute(query, (id_product, category_number, product_name, characteristics))
+            conn.commit()
 
 
 def dump_product(id_product):
-    cur = get_connection().cursor()
-    query = 'delete from product where id_product = %s'
-    cur.execute(query, (id_product,))
-    get_connection().commit()
-    cur.close()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            query = 'delete from product where id_product = %s'
+            cur.execute(query, (id_product,))
+            conn.commit()
 
 def edit_product(id_product, category_number, product_name, characteristics):
-    cur = get_connection().cursor()
-    query = '''
-        update product
-        set category_number = %s,
-            product_name = %s,
-            characteristics = %s
-        where id_product = %s
-    '''
-    cur.execute(query, (category_number, product_name, characteristics, id_product))
-    get_connection().commit()
-    cur.close()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            query = '''
+                update product
+                set category_number = %s,
+                    product_name = %s,
+                    characteristics = %s
+                where id_product = %s
+            '''
+            cur.execute(query, (category_number, product_name, characteristics, id_product))
+            conn.commit()
