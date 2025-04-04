@@ -1,10 +1,29 @@
 from backend.db import get_connection
 
-def get_products():
+
+def get_products(category=None, search=None):
+    base_query = 'select * from products'
+    conditions = list()
+    parameters = list()
+
+    if category is not None:
+        conditions.append("category_number = %s")
+        parameters.append(category)
+
+    if search is not None:
+        conditions.append("product_name ilike %s")
+        parameters.append(f"%{search}%")
+
+    if conditions:
+        base_query += " where " + " and ".join(conditions)
+
+    base_query += " order by product_name;"
+
     cur = get_connection().cursor()
-    cur.execute('select * from product;')
+    cur.execute(base_query, tuple(parameters))
     products = cur.fetchall()
     cur.close()
+
     return [
         {
             "id": row[0],

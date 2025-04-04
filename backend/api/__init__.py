@@ -1,7 +1,7 @@
 from flask import Blueprint
 from .auth import auth
 from .categories import categories
-from .product import product
+from .products import product
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
