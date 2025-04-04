@@ -1,7 +1,7 @@
 from backend.db import get_connection
 
 
-def get_all_categories():
+def fetch_categories():
     cur = get_connection().cursor()
     query = '''
                 select category_number, category_name
@@ -14,7 +14,7 @@ def get_all_categories():
     return categories
 
 
-def get_category_by_id(category_id):
+def fetch_category_by_id(category_id):
     cur = get_connection().cursor()
     query = '''
                 select category_number, category_name
@@ -28,7 +28,7 @@ def get_category_by_id(category_id):
     return category
 
 
-def update_category(category_id, category_name):
+def edit_category(category_id, category_name):
     cur = get_connection().cursor()
     query = '''
                 update category
