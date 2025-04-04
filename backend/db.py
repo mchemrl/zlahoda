@@ -2,12 +2,21 @@ import os
 
 import psycopg2
 from dotenv import load_dotenv
+from flask import g
 
 load_dotenv()
+SUPABASE_URL = os.getenv("SUPABASE_URL")
 
-SUPABASE_URL = os.getenv("supabase_url")
+
+def get_connection():
+    """Open a new database connection if there is none yet for the current application context."""
+    if 'connection' not in g:
+        g.conn = psycopg2.connect(SUPABASE_URL)
+    return g.conn
 
 
-def open_connection():
-    """Open a connection to the database."""
-    return psycopg2.connect(SUPABASE_URL)
+def close_connection(e=None):
+    """Close the database connection at the end of the request."""
+    conn = g.pop('conn', None)
+    if conn is not None:
+        conn.close()

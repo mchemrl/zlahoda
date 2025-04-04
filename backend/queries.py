@@ -1,16 +1,15 @@
-import psycopg2
 from flask import Blueprint, jsonify, request
-from backend import SUPABASE_URL
-from backend.auth import login_required
-from backend.db import open_connection
+
+from backend.api.auth import login_required
+from backend.db import get_connection
 
 queries = Blueprint('queries', __name__)
+
 
 @queries.route('/get_categories', methods=['GET'])
 def get_categories():
     try:
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         cur.execute("select * from category;")
         categories = cur.fetchall()
@@ -22,18 +21,17 @@ def get_categories():
             })
 
         cur.close()
-        conn.close()
 
         return jsonify(category_list)
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        return jsonify({'error': str(e)}), 500
+
 
 @queries.route('/get_products', methods=['GET'])
 def get_products():
     try:
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         cur.execute("select * from product;")
         products = cur.fetchall()
@@ -47,7 +45,6 @@ def get_products():
             })
 
         cur.close()
-        conn.close()
 
         return jsonify(product_list)
 
@@ -55,13 +52,11 @@ def get_products():
         return jsonify({'error': str(e)})
 
 
-
 @queries.route('/get_store_products', methods=['GET'])
 @login_required
 def get_store_products():
     try:
-        conn = open_connection()
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         query = '''
         select sp.UPC, sp.UPC_prom, sp.id_product, sp.selling_price, sp.products_number, sp.promotional_product, p.product_name
@@ -84,7 +79,6 @@ def get_store_products():
             })
 
         cur.close()
-        conn.close()
 
         return jsonify(store_product_list), 200
     except Exception as e:
@@ -108,8 +102,7 @@ def add_store_product():
         if not id_product or not UPC or not selling_price or not products_number:
             return jsonify({'error': 'missing required fields'}), 400
 
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         query = """
                insert into store_product (UPC, UPC_prom, id_product, selling_price, products_number, promotional_product)
@@ -125,9 +118,8 @@ def add_store_product():
             promotional_product
         ))
 
-        conn.commit()
+        get_connection().commit()
         cur.close()
-        conn.close()
 
         return jsonify({'message': ' store product added'}), 201
 
@@ -141,12 +133,11 @@ def delete_store_product():
         data = request.get_json()
         upc = data.get('UPC')
 
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         query = 'delete from store_product where UPC = %s'
         cur.execute(query, (upc,))
-        conn.commit()
+        get_connection().commit()
         cur.close()
 
         return jsonify({'message': 'product deleted!'}), 201
@@ -166,8 +157,7 @@ def update_store_product():
         products_number = data.get('products_number')
         promotional_product = data.get('promotional_product')
 
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
         query = '''
         update store_product
         set UPC = %s,
@@ -184,7 +174,7 @@ def update_store_product():
 
         cur.execute(query, (new_upc, id_product, selling_price, products_number, promotional_product,
                             promotional_product, new_upc, old_upc))
-        conn.commit()
+        get_connection().commit()
         cur.close()
 
         return jsonify({'message': 'product updated !!'}), 200
@@ -205,8 +195,7 @@ def add_product():
         if not id_product or not category_number or not product_name or not characteristics:
             return jsonify({'error': 'mssing required fields'}), 400
 
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         query = """
                insert into product (id_product, category_number, product_name, characteristics)
@@ -214,9 +203,8 @@ def add_product():
                """
 
         cur.execute(query, (id_product, category_number, product_name, characteristics))
-        conn.commit()
+        get_connection().commit()
         cur.close()
-        conn.close()
 
         return jsonify({"message": "product added"}), 201
 
@@ -227,12 +215,11 @@ def add_product():
 @queries.route('/delete_product/<int:id_product>', methods=['DELETE'])
 def delete_product(id_product):
     try:
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         query = 'delete from product where id_product = %s'
         cur.execute(query, (id_product,))
-        conn.commit()
+        get_connection().commit()
         cur.close()
 
         return jsonify({'message': 'product deleted!'}), 200
@@ -252,8 +239,7 @@ def update_product(id_product):
         if not category_number or not product_name or not characteristics:
             return jsonify({'error': 'missing require fiekdl'}), 400
 
-        conn = psycopg2.connect(SUPABASE_URL)
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         query = '''
         update product
@@ -264,7 +250,7 @@ def update_product(id_product):
         '''
 
         cur.execute(query, (category_number, product_name, characteristics, id_product))
-        conn.commit()
+        get_connection().commit()
 
         cur.close()
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 
-from backend.auth import login_required
+from backend.api.auth import login_required
 
 views = Blueprint('views', __name__)
 

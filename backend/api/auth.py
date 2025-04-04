@@ -1,11 +1,9 @@
 import functools
 
-import psycopg2
-from flask import Blueprint, request, redirect, url_for, render_template, session, g, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, request, session, g, jsonify
+from werkzeug.security import check_password_hash
 
-from backend import SUPABASE_URL
-from backend.db import open_connection
+from backend.db import get_connection
 
 auth = Blueprint('auth', __name__)
 
@@ -38,8 +36,30 @@ auth = Blueprint('auth', __name__)
 #     session['user_id'] = user_id
 #     return jsonify({'message': 'user created successfully'}), 201
 
+@auth.route('/login', methods=('GET',))
+def get_login():
+    if g.user is None:
+        return jsonify({'error': 'not logged in'}), 400
 
-@auth.route('/login', methods=('GET', 'POST'))
+    user_id = session.get('user_id')
+    cur = get_connection().cursor()
+    get_role_query = '''
+                select empl_role, empl_surname, empl_name, empl_patronymic from employee where id_employee = %s
+                '''
+    cur.execute(get_role_query, (user_id,))
+    employee = cur.fetchone()
+
+    cur.close()
+
+    return jsonify({
+        'user_id': user_id,
+        'role': employee[0],
+        'empl_surname': employee[1],
+        'empl_name': employee[2],
+        'empl_patronymic': employee[3]}), 200
+
+
+@auth.route('/login', methods=('POST',))
 def login():
     if request.method == 'POST':
         if g.user is not None:
@@ -54,8 +74,7 @@ def login():
         elif not password:
             return jsonify({'error': 'password is required'}), 400
 
-        conn = open_connection()
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         get_user_query = '''
         select user_id, username, password from "user" where username = %s
@@ -67,7 +86,7 @@ def login():
         if user is None or not check_password_hash(user[2], password):
             return jsonify({'error': 'incorrect username or password'}), 400
 
-        cur = conn.cursor()
+        cur = get_connection().cursor()
         get_role_query = '''
         select empl_role, empl_surname, empl_name, empl_patronymic from employee where id_employee = %s
         '''
@@ -75,36 +94,12 @@ def login():
         employee = cur.fetchone()
 
         cur.close()
-        conn.close()
 
         session.clear()
         session['user_id'] = user[0]
         session['role'] = employee[0] if employee[0] else None
         return jsonify({
             'user_id': user[0],
-            'role': employee[0],
-            'empl_surname': employee[1],
-            'empl_name': employee[2],
-            'empl_patronymic': employee[3]}), 200
-
-    if request.method == 'GET':
-        if g.user is None:
-            return jsonify({'error': 'not logged in'}), 400
-
-        user_id = session.get('user_id')
-        conn = open_connection()
-        cur = conn.cursor()
-        get_role_query = '''
-                select empl_role, empl_surname, empl_name, empl_patronymic from employee where id_employee = %s
-                '''
-        cur.execute(get_role_query, (user_id,))
-        employee = cur.fetchone()
-
-        cur.close()
-        conn.close()
-
-        return jsonify({
-            'user_id': user_id,
             'role': employee[0],
             'empl_surname': employee[1],
             'empl_name': employee[2],
@@ -118,8 +113,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        conn = open_connection()
-        cur = conn.cursor()
+        cur = get_connection().cursor()
 
         cur.execute('''
         SELECT * FROM employee WHERE id_employee = %s
@@ -127,10 +121,9 @@ def load_logged_in_user():
         g.user = cur.fetchone()
 
         cur.close()
-        conn.close()
 
 
-@auth.route('/logout', methods=('GET',))
+@auth.route('/logout', methods=('POST',))
 def logout():
     session.clear()
     return jsonify({'message': 'logged out successfully'}), 200
