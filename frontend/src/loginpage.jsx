@@ -1,15 +1,28 @@
 import { useState } from "react";
-import { FaUserTie, FaCashRegister } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
-  const [role, setRole] = useState(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    localStorage.setItem("role", role);
-    console.log("Logged in as:", role);
-    navigate("/products");
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+
+      navigate("/products");
+    } catch (err) {
+      setErrorMsg(err.message);
+    }
   };
 
   return (
@@ -20,38 +33,22 @@ export default function LoginPage() {
         <p className="text-[#F57B20]">Enter your account details</p>
 
         <div className="mt-6 space-y-4 w-full max-w-sm">
-          {/* Mutually exclusive role selection */}
-          <button
-            onClick={() => setRole("manager")}
-            className={`flex items-center justify-center w-full p-3 border rounded-lg transition ${
-              role === "manager"
-                ? "bg-[#F57B20] text-white"
-                : "bg-white text-[#F57B20] border-[#F57B20]"
-            }`}
-          >
-            <FaUserTie className="mr-2" /> I am a Manager
-          </button>
-          <button
-            onClick={() => setRole("cashier")}
-            className={`flex items-center justify-center w-full p-3 border rounded-lg transition ${
-              role === "cashier"
-                ? "bg-[#F57B20] text-white"
-                : "bg-white text-[#F57B20] border-[#F57B20]"
-            }`}
-          >
-            <FaCashRegister className="mr-2" /> I am a Cashier
-          </button>
-
           <input
             type="text"
             placeholder="Email or username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full p-3 border rounded-lg text-[#F57B20] bg-white shadow-sm focus:ring focus:ring-[#F57B20] focus:border-[#F57B20]"
           />
           <input
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 border rounded-lg text-[#F57B20] bg-white shadow-sm focus:ring focus:ring-[#F57B20] focus:border-[#F57B20]"
           />
+
+          {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
 
           <button
             className="w-full bg-[#F57B20] text-white p-3 rounded-lg hover:bg-[#d9691c] transition"
@@ -64,14 +61,11 @@ export default function LoginPage() {
 
       {/* Right side: Shopping cart pattern */}
       <div className="bg-[#F57B20] flex justify-center items-center relative">
-        <div className="absolute inset-0  bg-repeat bg-[url('/cart-pattern.png')]">
-
-         <img
-            src="static/bumbastik_gift.gif"
-            alt="Loading GIF"
-            className="absolute inset-0 m-auto w-90 h-90"
-          />
-        </div>
+        <img
+          src="static/bumbastik_gift.gif"
+          alt="Loading GIF"
+          className="absolute inset-0 m-auto w-90 h-90"
+        />
       </div>
     </div>
   );
