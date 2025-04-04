@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from backend.db import get_connection
 
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
@@ -13,20 +14,23 @@ def get_products():
     return jsonify(products)
 
 
-@product.route('', methods=['GET'])
+@product.route('/', methods=['GET'])
 def get_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
-        return jsonify({'error': 'Missing id_product'}), 400
+        return jsonify({'error': 'missing id_product'}), 400
 
     product = fetch_product(id_product)
     if product:
         return jsonify(product)
     else:
-        return jsonify({'error': 'Product not found'}), 404
+        return jsonify({'error': 'product not found'}), 404
 
 
-@product.route('/', methods=['POST'])
+from psycopg2.errors import IntegrityError
+
+
+@product.route('/add', methods=('POST',))
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -37,8 +41,10 @@ def add_product():
     if not id_product or not category_number or not product_name or not characteristics:
         return jsonify({'error': 'missing required fields'}), 400
 
-    create_product(id_product, category_number, product_name, characteristics)
-    return jsonify({"message": "product added"}), 201
+    create_product(id_product, category_number, product_name, characteristics);
+
+    return jsonify({'message': 'product added!'}), 200
+
 
 @product.route('/<int:id_product>', methods=['DELETE'])
 def delete_product(id_product):

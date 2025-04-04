@@ -8,9 +8,8 @@ from backend.services.auth_service import get_user, get_employee, add_user
 
 auth = Blueprint('auth', __name__)
 
-
 @auth.route('/register', methods=('POST',))
-@manager_required
+#@manager_required
 def register():
     data = request.json
     employee = data.get('employee')
