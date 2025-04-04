@@ -1,26 +1,24 @@
 from flask import Blueprint, request, jsonify
 
-from .. import services
-from ..services import products_service
-from ..services.products_service import get_products, get_product, update_product, delete_product, add_product
+from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
-product = Blueprint('product', __name__)
+product = Blueprint('products', __name__)
 
-@product.route('/products', methods=['GET'])
+@product.route('/', methods=['GET'])
 def get_products():
     category = request.args.get('category')
     search = request.args.get('search')
 
-    products = get_products(category, search)
+    products = fetch_products(category, search)
     return jsonify(products)
 
 
-@product.route('/products/<int:id_product>', methods = ('GET',))
+@product.route('/<int:id_product>', methods = ('GET',))
 def get_product(id_product):
-    product = get_product(id_product)
+    product = fetch_product(id_product)
     return jsonify(product)
 
-@product.route('/products', methods=['POST'])
+@product.route('/', methods=['POST'])
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -31,15 +29,15 @@ def add_product():
     if not id_product or not category_number or not product_name or not characteristics:
         return jsonify({'error': 'missing required fields'}), 400
 
-    add_product(id_product, category_number, product_name, characteristics)
+    create_product(id_product, category_number, product_name, characteristics)
     return jsonify({"message": "product added"}), 201
 
-@product.route('/products/<int:id_product>', methods=['DELETE'])
+@product.route('/<int:id_product>', methods=['DELETE'])
 def delete_product(id_product):
-    delete_product(id_product)
+    dump_product(id_product)
     return jsonify({'message': 'product deleted!'}), 200
 
-@product.route('/products/<int:id_product>', methods=['PUT'])
+@product.route('/<int:id_product>', methods=['PUT'])
 def update_product(id_product):
     data = request.json
     category_number = data.get('category_number')
@@ -49,7 +47,7 @@ def update_product(id_product):
     if not category_number or not product_name or not characteristics:
         return jsonify({'error': 'missing required fields'}), 400
 
-    update_product(id_product, category_number, product_name, characteristics)
+    edit_product(id_product, category_number, product_name, characteristics)
     return jsonify({
         'id': id_product,
         'category_number': category_number,

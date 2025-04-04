@@ -1,8 +1,8 @@
 from backend.db import get_connection
 
 
-def get_products(category=None, search=None):
-    base_query = 'select * from products'
+def fetch_products(category=None, search=None):
+    base_query = 'select * from product'
     conditions = list()
     parameters = list()
 
@@ -34,9 +34,9 @@ def get_products(category=None, search=None):
         for row in products
     ]
 
-def get_product(id_product):
+def fetch_product(id_product):
     cur = get_connection().cursor()
-    query = 'select * from product where id = %s'
+    query = 'select * from product where id_product = %s'
     cur.execute(query, (id_product,))
     product = cur.fetchone()
     if product:
@@ -46,24 +46,29 @@ def get_product(id_product):
             "product_name": product[2],
         }
 
-def add_product(id_product, category_number, product_name, characteristics):
+def create_product(id_product, category_number, product_name, characteristics):
     cur = get_connection().cursor()
     query = """
         insert into product (id_product, category_number, product_name, characteristics)
-        values (%s, %s, %s, %s)
+        values (%s, %s, %s, %s) returning id_product
     """
     cur.execute(query, (id_product, category_number, product_name, characteristics))
+    prod = cur.fetchone()[0]
+    if prod:
+        print('cool')
+    else:
+        print('not cool')
     get_connection().commit()
     cur.close()
 
-def delete_product(id_product):
+def dump_product(id_product):
     cur = get_connection().cursor()
     query = 'delete from product where id_product = %s'
     cur.execute(query, (id_product,))
     get_connection().commit()
     cur.close()
 
-def update_product(id_product, category_number, product_name, characteristics):
+def edit_product(id_product, category_number, product_name, characteristics):
     cur = get_connection().cursor()
     query = '''
         update product
