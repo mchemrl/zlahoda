@@ -13,10 +13,18 @@ def get_products():
     return jsonify(products)
 
 
-@product.route('/<int:id_product>', methods = ('GET',))
-def get_product(id_product):
+@product.route('', methods=['GET'])
+def get_product():
+    id_product = request.args.get('id_product', type=int)
+    if not id_product:
+        return jsonify({'error': 'Missing id_product'}), 400
+
     product = fetch_product(id_product)
-    return jsonify(product)
+    if product:
+        return jsonify(product)
+    else:
+        return jsonify({'error': 'Product not found'}), 404
+
 
 @product.route('/', methods=['POST'])
 def add_product():
