@@ -4,6 +4,7 @@ from flask import Blueprint, request, session, g, jsonify
 from werkzeug.security import check_password_hash
 
 from backend.db import get_connection
+from backend.services.auth_service import get_user, get_employee
 
 auth = Blueprint('auth', __name__)
 
@@ -42,14 +43,7 @@ def get_login():
         return jsonify({'error': 'not logged in'}), 400
 
     user_id = session.get('user_id')
-    cur = get_connection().cursor()
-    get_role_query = '''
-                select empl_role, empl_surname, empl_name, empl_patronymic from employee where id_employee = %s
-                '''
-    cur.execute(get_role_query, (user_id,))
-    employee = cur.fetchone()
-
-    cur.close()
+    employee = get_employee(user_id)
 
     return jsonify({
         'user_id': user_id,
@@ -74,26 +68,12 @@ def login():
         elif not password:
             return jsonify({'error': 'password is required'}), 400
 
-        cur = get_connection().cursor()
-
-        get_user_query = '''
-        select user_id, username, password from "user" where username = %s
-        '''
-        cur.execute(get_user_query, (username,))
-        user = cur.fetchone()
-        cur.close()
+        user = get_user(username)
 
         if user is None or not check_password_hash(user[2], password):
             return jsonify({'error': 'incorrect username or password'}), 400
 
-        cur = get_connection().cursor()
-        get_role_query = '''
-        select empl_role, empl_surname, empl_name, empl_patronymic from employee where id_employee = %s
-        '''
-        cur.execute(get_role_query, (user[0],))
-        employee = cur.fetchone()
-
-        cur.close()
+        employee = get_employee(user[0])
 
         session.clear()
         session['user_id'] = user[0]
@@ -134,6 +114,26 @@ def login_required(view):
     def wrapped_view(**kwargs):
         if g.user is None:
             return jsonify({'error': 'not logged in'}), 400
+        return view(**kwargs)
+
+    return wrapped_view
+
+
+def manager_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None or g.user[0] != 'Manager':
+            return jsonify({'error': 'not manager'}), 400
+        return view(**kwargs)
+
+    return wrapped_view
+
+
+def cashier_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None or g.user[0] != 'Cashier':
+            return jsonify({'error': 'not cashier'}), 400
         return view(**kwargs)
 
     return wrapped_view
