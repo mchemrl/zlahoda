@@ -20,8 +20,6 @@ def get_products():
     products = fetch_products(category, search)
     return jsonify(products)
 
-
-
 @product.route('/', methods=('POST',))
 def add_product():
     data = request.json

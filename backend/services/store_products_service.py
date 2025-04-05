@@ -28,7 +28,7 @@ def fetch_store_product(upc):
             else:
                 return None
 
-def fetch_store_products(promotional, category, sort, descending = False):
+def fetch_store_products(promotional, category, sort, search, descending = False):
     base_query = """
         select sp.UPC,sp.UPC_prom, p.id_product, p.product_name, sp.selling_price,
             sp.products_number, sp.promotional_product, c.category_name
@@ -49,6 +49,10 @@ def fetch_store_products(promotional, category, sort, descending = False):
             parameters.append(True)
         elif promotional.lower() == 'false':
             parameters.append(False)
+
+    if search is not None:
+        conditions.append("product_name ilike %s")
+        parameters.append(f"%{search}%")
 
     if conditions:
         base_query += " where " + " and ".join(conditions)
