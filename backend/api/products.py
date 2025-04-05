@@ -4,27 +4,22 @@ from flask import Blueprint, request, jsonify
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
 product = Blueprint('products', __name__)
-
 @product.route('/', methods=['GET'])
 def get_products():
+    id_product = request.args.get('id_product', type=int)
     category = request.args.get('category')
     search = request.args.get('search')
+
+    if id_product is not None:
+        product = fetch_product(id_product)
+        if product:
+            return jsonify(product)
+        else:
+            return jsonify({'error': 'product not found'}), 404
 
     products = fetch_products(category, search)
     return jsonify(products)
 
-
-@product.route('/', methods=['GET'])
-def get_product():
-    id_product = request.args.get('id_product', type=int)
-    if not id_product:
-        return jsonify({'error': 'missing id_product'}), 400
-
-    product = fetch_product(id_product)
-    if product:
-        return jsonify(product)
-    else:
-        return jsonify({'error': 'product not found'}), 404
 
 
 @product.route('/', methods=('POST',))

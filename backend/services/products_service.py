@@ -1,6 +1,5 @@
 from backend.db import get_connection
 
-
 def fetch_products(category=None, search=None):
     base_query = 'select * from product'
     conditions = []
