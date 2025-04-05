@@ -87,11 +87,34 @@ def fetch_store_products(promotional, category, sort, search, descending = False
         for row in store_products
     ]
 
-def create_store_product():
-    pass
+def create_store_product(UPC,id_product,selling_price,products_number,promotional_product, UPC_prom=None):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            query = """
+                           insert into store_product (UPC, UPC_prom, id_product, selling_price, products_number, promotional_product)
+                           values (%s, %s, %s, %s, %s, %s)
+                           """
+            cur.execute(query, (UPC,UPC_prom,id_product,selling_price,products_number,promotional_product))
+            conn.commit()
 
-def dump_store_product():
-    pass
+def dump_store_product(upc):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            query = 'delete from store_product where upc = %s'
+            cur.execute(query, (upc,))
+            conn.commit()
 
-def edit_store_product():
-    pass
+def edit_store_product(upc, id_product,selling_price,products_number,promotional_product, upc_prom=None):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            query = '''
+                   update store_product
+                   set UPC_prom = %s,
+                       id_product = %s,
+                       selling_price = %s,
+                       products_number = %s,
+                       promotional_product = %s
+                   where upc = %s
+               '''
+            cur.execute(query, (upc_prom, id_product, selling_price, products_number, promotional_product, upc))
+            conn.commit()

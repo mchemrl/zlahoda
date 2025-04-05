@@ -51,7 +51,6 @@ def fetch_product(id_product):
                 return None
 
 
-
 def create_product(id_product, category_number, product_name, characteristics):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -61,7 +60,6 @@ def create_product(id_product, category_number, product_name, characteristics):
             """
             cur.execute(query, (id_product, category_number, product_name, characteristics))
             conn.commit()
-
 
 def dump_product(id_product):
     with get_connection() as conn:
