@@ -2,19 +2,21 @@ from flask import Blueprint, request, session, g, jsonify
 from psycopg2 import IntegrityError
 from werkzeug.security import check_password_hash
 
-from backend.db import get_connection
 from backend.decorators import manager_required
-from backend.services.auth_service import get_user, get_employee, add_user
+from backend.services.auth_service import fetch_user_by_username, fetch_employee_by_id, create_user, fetch_user_by_id
 
 auth = Blueprint('auth', __name__)
+
 
 @auth.route('/register', methods=['POST'])
 @manager_required
 def register():
     data = request.json
-    employee = data.get('employee')
+    empl_id = data.get('employee_id')
     username = data.get('username')
     password = data.get('password')
+
+    # TODO Check if the employee_id is valid
 
     if not username:
         return jsonify({'error': 'username is required'}), 400
@@ -22,7 +24,7 @@ def register():
         return jsonify({'error': 'password is required'}), 400
 
     try:
-        add_user(employee, username, password)
+        create_user(empl_id, username, password)
     except IntegrityError:
         return jsonify({'error': 'username already exists'}), 400
 
@@ -35,7 +37,7 @@ def get_login():
         return jsonify({'error': 'not logged in'}), 400
 
     user_id = session.get('user_id')
-    employee = get_employee(user_id)
+    employee = fetch_employee_by_id(user_id)
     return jsonify({
         'user_id': user_id,
         'role': employee[0],
@@ -59,11 +61,11 @@ def login():
     elif not password:
         return jsonify({'error': 'password is required'}), 400
 
-    user = get_user(username)
+    user = fetch_user_by_username(username)
     if user is None or not check_password_hash(user[2], password):
         return jsonify({'error': 'incorrect username or password'}), 400
 
-    employee = get_employee(user[0])
+    employee = fetch_employee_by_id(user[0])
     session.clear()
     session['user_id'] = user[0]
     session['role'] = employee[0] if employee[0] else None
@@ -81,15 +83,10 @@ def load_logged_in_user():
     user_id = session.get('user_id')
     if user_id is None:
         g.user = None
-    else:
-        with get_connection() as conn:
-            if conn is not None:
-                with conn.cursor() as cur:
-                    query = '''SELECT * FROM "user" WHERE user_id = %s'''
-                    cur.execute(query, (user_id,))
-                    g.user = cur.fetchone()
-            else:
-                g.user = None
+        return
+
+    g.user = fetch_user_by_id(user_id)
+    g.employee = fetch_employee_by_id(user_id)
 
 
 @auth.route('/logout', methods=['POST'])
