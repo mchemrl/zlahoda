@@ -1,8 +1,9 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Login from "./loginpage";
-import ProductsPage from "./productspage";
-import StoreProducts from "./storeproducts";
+import Login from "./pages/loginpage";
+import ProductsPage from "./pages/productspage";
+import StoreProducts from "./pages/storeproducts";
+import ProfilePage from "./pages/profile";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <Route path="/" element={<Login />} />
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/store-products" element={<StoreProducts />} />
+      <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   );
 }

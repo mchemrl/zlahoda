@@ -9,12 +9,12 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/get_products")
+    fetch("http://127.0.0.1:5000/api/products")
       .then((response) => response.json())
       .then((data) => setProducts(data))
       .catch((error) => console.error("Error fetching products:", error));
 
-    fetch("http://127.0.0.1:5000/get_categories")
+    fetch("http://127.0.0.1:5000/api/categories")
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
@@ -30,11 +30,14 @@ export default function ProductsPage() {
 
   const handleSaveChanges = () => {
     if (!selectedProduct) return;
-    fetch(`http://127.0.0.1:5000/update_product/${selectedProduct.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(selectedProduct),
-    })
+    fetch(
+      `http://127.0.0.1:5000/api/products/?id_product=${selectedProduct.id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedProduct),
+      }
+    )
       .then((response) => response.json())
       .then((updatedProduct) => {
         setProducts((prevProducts) =>
@@ -49,9 +52,12 @@ export default function ProductsPage() {
 
   const handleDeleteProduct = () => {
     if (!selectedProduct) return;
-    fetch(`http://127.0.0.1:5000/api/products/${selectedProduct.id}`, {
-      method: "DELETE",
-    })
+    fetch(
+      `http://127.0.0.1:5000/api/products/?id_product=${selectedProduct.id}`,
+      {
+        method: "DELETE",
+      }
+    )
       .then(() => {
         setProducts((prevProducts) =>
           prevProducts.filter((p) => p.id !== selectedProduct.id)
@@ -84,13 +90,15 @@ export default function ProductsPage() {
 
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
-      <header className="w-screen h-24 bg-orange-500 bg-opacity-75 shadow-lg flex justify-between items-center px-6">
-        <div className="text-orange-50 text-3xl">Zlahoda
-         <img
+      <header className="w-screen h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
+        <div className="text-orange-50 text-3xl flex items-center">
+          Zlahoda
+          <img
             src="static/bumbastik_thumbs.gif"
             alt="Loading GIF"
-            className="absolute right-332 top-3 w-15 h-15"
-          /></div>
+            className="w-15 h-15"
+          />
+        </div>
         <nav className="flex space-x-6 text-orange-50 text-lg">
           <ul className="flex space-x-6">
             <li className="cursor-pointer hover:underline">Client</li>
@@ -101,7 +109,9 @@ export default function ProductsPage() {
               <Link to="/store-products">Store Products</Link>
             </li>
             <li className="cursor-pointer hover:underline">Checks</li>
-            <li className="cursor-pointer hover:underline">Profile</li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/profile">Profile</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -148,7 +158,7 @@ export default function ProductsPage() {
               {products.map((product) => (
                 <tr
                   key={product.id}
-                  className="border-b border-[#fff3ea] hover:bg-[#db6c1c] cursor-pointer"
+                  className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
                   onDoubleClick={() => openEditModal(product)}
                 >
                   <td className="px-4 py-2">{product.product_name}</td>
@@ -161,7 +171,6 @@ export default function ProductsPage() {
               ))}
             </tbody>
           </table>
-
         </div>
       </main>
 
