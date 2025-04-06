@@ -3,7 +3,9 @@ from psycopg2 import IntegrityError
 from werkzeug.security import check_password_hash
 
 from backend.decorators import manager_required
-from backend.services.auth_service import fetch_user_by_username, fetch_employee_by_user_id, create_user, fetch_user_by_id
+from backend.services.auth_service import fetch_user_by_username, fetch_employee_by_user_id, create_user, \
+    fetch_user_by_id
+from backend.services.employees_service import fetch_employee_by_id
 
 auth = Blueprint('auth', __name__)
 
@@ -16,7 +18,8 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
-    # TODO Check if the employee_id is valid
+    if not fetch_employee_by_id(empl_id):
+        return jsonify({'error': 'employee not found'}), 400
 
     if not username:
         return jsonify({'error': 'username is required'}), 400
