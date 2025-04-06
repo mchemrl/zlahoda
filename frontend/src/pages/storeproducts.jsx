@@ -9,7 +9,7 @@ export default function StoreProductsPage() {
   const [promotional, setPromotional] = useState(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/get_store_products")
+    fetch("http://127.0.0.1:5000/")
       .then((response) => response.json())
       .then((data) => setStoreProducts(data))
       .catch((error) => console.error("Error fetching store products:", error));
@@ -64,9 +64,10 @@ export default function StoreProductsPage() {
 
   return (
     <div className='w-screen h-screen bg-[#fff3ea] font-["Kumbh_Sans"] text-lg font-normal flex flex-col relative'>
-      <header className="w-screen h-24 bg-orange-500 bg-opacity-75 shadow-lg flex justify-between items-center px-6">
-        <div className="text-orange-50 text-3xl">Zlahoda
-        <img
+      <header className="w-screen h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
+        <div className="text-orange-50 text-3xl">
+          Zlahoda
+          <img
             src="static/bumbastik_thumbs.gif"
             alt="Loading GIF"
             className="absolute right-332 top-3 w-15 h-15"
@@ -82,7 +83,9 @@ export default function StoreProductsPage() {
               <Link to="/store-products">Store Products</Link>
             </li>
             <li className="cursor-pointer hover:underline">Checks</li>
-            <li className="cursor-pointer hover:underline">Profile</li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/profile">Profile</Link>
+            </li>
           </ul>
         </nav>
       </header>
@@ -126,7 +129,7 @@ export default function StoreProductsPage() {
                   <tr
                     key={product.UPC}
                     className="border-b border-[#fff3ea] hover:bg-[#db6c1c] cursor-pointer text-center"
-                    onDoubleClick={() => openEditModal(product)}
+                    onDoubleClick={handleDeleteStoreProduct(product.UPC)}
                   >
                     <td className="px-4 py-2">{product.product_name}</td>
                     <td className="px-4 py-2">{product.UPC}</td>

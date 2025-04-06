@@ -35,7 +35,7 @@ export default function LoginPage() {
         <div className="mt-6 space-y-4 w-full max-w-sm">
           <input
             type="text"
-            placeholder="Email or username"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full p-3 border rounded-lg text-[#F57B20] bg-white shadow-sm focus:ring focus:ring-[#F57B20] focus:border-[#F57B20]"
