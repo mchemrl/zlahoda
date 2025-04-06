@@ -1,14 +1,20 @@
 from backend.db import get_connection
 
 
-def fetch_categories():
+def fetch_categories(sort_by=None, is_ascending=None):
+    base_query = '''
+        select category_number, category_name
+        from category
+    '''
+
+    if sort_by is not None and is_ascending is not None:
+        if sort_by == 'category_name':
+            direction = 'asc' if is_ascending else 'desc'
+            base_query += f' order by {sort_by} {direction}'
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            query = '''
-                select category_number, category_name
-                from category
-            '''
-            cur.execute(query)
+            cur.execute(base_query, sort_by)
             categories = cur.fetchall()
         return categories
 

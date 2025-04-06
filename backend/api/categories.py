@@ -1,4 +1,3 @@
-import psycopg2
 from flask import Blueprint, jsonify, request
 from psycopg2 import IntegrityError
 
@@ -20,7 +19,12 @@ def get_categories():
             "category_name": category[1]
         })
 
-    categories_query_res = fetch_categories()
+    sort_by = request.args.get('sort_by')
+    is_ascending = request.args.get('is_ascending')
+    if is_ascending is not None:
+        is_ascending = is_ascending.lower() == 'true'
+
+    categories_query_res = fetch_categories(sort_by, is_ascending)
     category_list = list()
     for row in categories_query_res:
         category_list.append({
