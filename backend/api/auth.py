@@ -3,7 +3,7 @@ from psycopg2 import IntegrityError
 from werkzeug.security import check_password_hash
 
 from backend.decorators import manager_required
-from backend.services.auth_service import fetch_user_by_username, fetch_employee_by_id, create_user, fetch_user_by_id
+from backend.services.auth_service import fetch_user_by_username, fetch_employee_by_user_id, create_user, fetch_user_by_id
 
 auth = Blueprint('auth', __name__)
 
@@ -37,7 +37,7 @@ def get_login():
         return jsonify({'error': 'not logged in'}), 400
 
     user_id = session.get('user_id')
-    employee = fetch_employee_by_id(user_id)
+    employee = fetch_employee_by_user_id(user_id)
     return jsonify({
         'user_id': user_id,
         'role': employee[0],
@@ -65,7 +65,7 @@ def login():
     if user is None or not check_password_hash(user[2], password):
         return jsonify({'error': 'incorrect username or password'}), 400
 
-    employee = fetch_employee_by_id(user[0])
+    employee = fetch_employee_by_user_id(user[0])
     session.clear()
     session['user_id'] = user[0]
     session['role'] = employee[0] if employee[0] else None
@@ -86,7 +86,7 @@ def load_logged_in_user():
         return
 
     g.user = fetch_user_by_id(user_id)
-    g.employee = fetch_employee_by_id(user_id)
+    g.employee = fetch_employee_by_user_id(user_id)
 
 
 @auth.route('/logout', methods=['POST'])

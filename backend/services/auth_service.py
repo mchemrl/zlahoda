@@ -29,7 +29,7 @@ def fetch_user_by_id(user_id):
     return user
 
 
-def fetch_employee_by_id(user_id):
+def fetch_employee_by_user_id(user_id):
     with get_connection() as conn:
         with conn.cursor() as cur:
             get_role_query = '''
