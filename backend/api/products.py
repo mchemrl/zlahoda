@@ -3,8 +3,9 @@ from flask import Blueprint, request, jsonify
 
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
-product = Blueprint('products', __name__)
-@product.route('/', methods=['GET'])
+products = Blueprint('products', __name__)
+
+@products.route('/', methods=['GET'])
 def get_products():
     id_product = request.args.get('id_product', type=int)
     category = request.args.get('category')
@@ -21,7 +22,7 @@ def get_products():
     products = fetch_products(category, search, descending)
     return jsonify(products)
 
-@product.route('/', methods=('POST',))
+@products.route('/', methods=('POST',))
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -37,7 +38,7 @@ def add_product():
     return jsonify({'message': 'product added!'}), 200
 
 
-@product.route('/', methods=['DELETE'])
+@products.route('/', methods=['DELETE'])
 def delete_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
@@ -58,7 +59,7 @@ def delete_product():
 
     return jsonify({'message': 'product deleted!'}), 200
 
-@product.route('/', methods=['PUT'])
+@products.route('/', methods=['PUT'])
 def update_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:

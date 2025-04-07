@@ -14,12 +14,9 @@ def create_app():
 
     from .views import views
     from backend.api import api
-    from .queries import queries
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(api)
-    app.register_blueprint(queries, url_prefix='/')
-
 
     CORS(app, resources={r"/*": {"origins": "*"}})
 
