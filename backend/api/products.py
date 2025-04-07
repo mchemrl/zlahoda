@@ -1,6 +1,7 @@
 import psycopg2
 from flask import Blueprint, request, jsonify
 
+from ..decorators import manager_required
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
 products = Blueprint('products', __name__)
@@ -23,6 +24,7 @@ def get_products():
     return jsonify(products)
 
 @products.route('/', methods=('POST',))
+@manager_required
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -39,6 +41,7 @@ def add_product():
 
 
 @products.route('/', methods=['DELETE'])
+@manager_required
 def delete_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
@@ -60,6 +63,7 @@ def delete_product():
     return jsonify({'message': 'product deleted!'}), 200
 
 @products.route('/', methods=['PUT'])
+@manager_required
 def update_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:

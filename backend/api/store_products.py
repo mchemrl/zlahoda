@@ -1,6 +1,7 @@
 import psycopg2
 from flask import Blueprint, request, jsonify
 
+from ..decorators import manager_required
 from ..services.store_products_service import (fetch_store_products, fetch_store_product,
                                                edit_store_product, dump_store_product,
                                                create_store_product, save_store_product)
@@ -27,6 +28,7 @@ def get_store_products():
         return jsonify(products)
 
 @store_product.route('/', methods=('POST',))
+@manager_required
 def add_store_product():
     data = request.json
     id_product = data.get('id_product')
@@ -68,6 +70,7 @@ def add_store_product():
     }), 200
 
 @store_product.route('/', methods=['DELETE'])
+@manager_required
 def delete_store_product():
     upc = request.args.get('upc', type=str)
     if not upc:
@@ -81,6 +84,7 @@ def delete_store_product():
     return jsonify({'message': 'store product deleted!'}), 200
 
 @store_product.route('/', methods=['PUT'])
+@manager_required
 def update_store_product():
     upc = request.args.get('upc', type=str)
     if not upc:
