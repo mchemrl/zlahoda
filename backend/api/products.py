@@ -9,6 +9,7 @@ def get_products():
     id_product = request.args.get('id_product', type=int)
     category = request.args.get('category')
     search = request.args.get('search')
+    descending = request.args.get('descending')
 
     if id_product is not None:
         product = fetch_product(id_product)
@@ -17,7 +18,7 @@ def get_products():
         else:
             return jsonify({'error': 'product not found'}), 404
 
-    products = fetch_products(category, search)
+    products = fetch_products(category, search, descending)
     return jsonify(products)
 
 @product.route('/', methods=('POST',))

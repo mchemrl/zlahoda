@@ -65,7 +65,6 @@ def fetch_store_products(promotional, category, sort, search, descending = False
         base_query += f" order by {valid_sort_fields[sort]}"
 
     if descending:
-        print('fsf')
         base_query += " desc"
 
     with get_connection() as conn:
