@@ -7,6 +7,12 @@ export default function ProductsPage() {
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("All categories");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    product_name: "",
+    category_number: categories[0]?.id || "",
+    characteristics: "",
+  });
 
   useEffect(() => {
     fetch("http://127.0.0.1:5000/api/products")
@@ -66,26 +72,55 @@ export default function ProductsPage() {
       })
       .catch((error) => console.error("Error deleting product:", error));
   };
+
+  const handleAddProduct = () => {
+    fetch("http://127.0.0.1:5000/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newProduct),
+    })
+      .then((res) => res.json())
+      .then((createdProduct) => {
+        setProducts((prev) => [...prev, createdProduct]);
+        setAddProductModalOpen(false);
+        setNewProduct({
+          product_name: "",
+          category_number: categories[0]?.id || "",
+          characteristics: "",
+        });
+      })
+      .catch((err) => console.error("Error adding product:", err));
+  };
+
   const handleFilter = () => {
-    fetch("http://127.0.0.1:5000/get_products")
-      .then((response) => response.json())
+    fetch("http://127.0.0.1:5000/api/products")
+      .then((res) => res.json())
       .then((data) => {
-        let filteredProducts = data;
+        let filtered = data;
+
         if (productName.trim()) {
-          filteredProducts = filteredProducts.filter((product) =>
+          filtered = filtered.filter((product) =>
             product.product_name
               .toLowerCase()
               .includes(productName.toLowerCase())
           );
         }
+
         if (category !== "All categories") {
-          filteredProducts = filteredProducts.filter(
+          filtered = filtered.filter(
             (product) => product.category_number == category
           );
         }
-        setProducts(filteredProducts);
+
+        if (filtered.length === 0) {
+          setProducts([]);
+        } else {
+          setProducts(filtered);
+        }
       })
-      .catch((error) => console.error("Error filtering products:", error));
+      .catch((err) => {
+        console.error("Error fetching products:", err);
+      });
   };
 
   return (
@@ -155,23 +190,36 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
-                <tr
-                  key={product.id}
-                  className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
-                  onDoubleClick={() => openEditModal(product)}
-                >
-                  <td className="px-4 py-2">{product.product_name}</td>
-                  <td className="px-4 py-2">
-                    {categories.find((cat) => cat.id == product.category_number)
-                      ?.category_name || "Unknown"}
-                  </td>
-                  <td className="px-4 py-2">{product.characteristics}</td>
+              {products &&
+                products.map((product) => (
+                  <tr
+                    key={product.id}
+                    className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
+                    onDoubleClick={() => openEditModal(product)}
+                  >
+                    <td className="px-4 py-2">{product.product_name}</td>
+                    <td className="px-4 py-2">
+                      {categories.find(
+                        (cat) => cat.id == product.category_number
+                      )?.category_name || "Unknown"}
+                    </td>
+                    <td className="px-4 py-2">{product.characteristics}</td>
+                  </tr>
+                ))}{" "}
+              {!products && (
+                <tr className="border-b border-[#fff3ea] hover:bg-[#db6c1c]">
+                  text-center cursor-pointer"
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
+        <button
+          onClick={() => setAddProductModalOpen(true)}
+          className="border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+        >
+          Add new product
+        </button>
       </main>
 
       {selectedProduct && (
@@ -235,6 +283,61 @@ export default function ProductsPage() {
                 Update
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {addProductModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
+            <button
+              onClick={() => setAddProductModalOpen(false)}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl mb-4 text-[#f57b20]">Add Product</h2>
+            <input
+              type="text"
+              value={newProduct.product_name}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, product_name: e.target.value })
+              }
+              placeholder="Product Name"
+              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+            />
+            <select
+              value={newProduct.category_number}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  category_number: e.target.value,
+                })
+              }
+              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+            >
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.category_name}
+                </option>
+              ))}
+            </select>
+            <textarea
+              value={newProduct.characteristics}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  characteristics: e.target.value,
+                })
+              }
+              placeholder="Characteristics"
+              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+            ></textarea>
+            <button
+              onClick={handleAddProduct}
+              className="bg-[#f57b20] text-white px-4 py-2 rounded cursor-pointer hover:bg-[#db6c1c] w-full"
+            >
+              Add Product
+            </button>
           </div>
         </div>
       )}

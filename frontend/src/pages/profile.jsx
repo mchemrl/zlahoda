@@ -44,7 +44,7 @@ export default function UserProfile() {
         </nav>
       </header>
 
-      <main className="flex-grow flex items-center justify-center px-4 py-8">
+      <main className="flex-grow flex flex-col items-center justify-center w-full h-screen overflow-hidden px-8 py-8">
         <div className="bg-[#fff3ea] flex flex-col items-center text-left space-y-4 w-full max-w-md">
           <h1 className="text-3xl font-bold text-[#f57b20]">Victoria Dyrda</h1>
           <p className="text-lg text-[#f57b20]">Manager</p>
