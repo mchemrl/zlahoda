@@ -1,13 +1,12 @@
 from backend.db import get_connection
 
-
-def fetch_products(category=None, search=None):
-    base_query = 'select * from product'
-    conditions = []
-    parameters = []
+def fetch_products(category=None, search=None, descending = False):
+    base_query = 'select id_product, product_name, category_name, characteristics from product p join category c on p.category_number = c.category_number'
+    conditions = list()
+    parameters = list()
 
     if category is not None:
-        conditions.append("category_number = %s")
+        conditions.append("c.category_number = %s")
         parameters.append(category)
 
     if search is not None:
@@ -17,7 +16,10 @@ def fetch_products(category=None, search=None):
     if conditions:
         base_query += " where " + " and ".join(conditions)
 
-    base_query += " order by product_name;"
+    base_query += " order by product_name"
+
+    if descending:
+        base_query += " desc;"
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -27,8 +29,8 @@ def fetch_products(category=None, search=None):
     return [
         {
             "id": row[0],
-            "category_number": row[1],
-            "product_name": row[2],
+            "product_name": row[1],
+            "category_name": row[2],
             "characteristics": row[3]
         }
         for row in products
@@ -51,8 +53,6 @@ def fetch_product(id_product):
             else:
                 return None
 
-
-
 def create_product(id_product, category_number, product_name, characteristics):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -62,7 +62,6 @@ def create_product(id_product, category_number, product_name, characteristics):
             """
             cur.execute(query, (id_product, category_number, product_name, characteristics))
             conn.commit()
-
 
 def dump_product(id_product):
     with get_connection() as conn:
