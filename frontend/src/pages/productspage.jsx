@@ -8,6 +8,7 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("All categories");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState("Ascending");
   const [newProduct, setNewProduct] = useState({
     product_name: "",
     category_number: categories[0]?.id || "",
@@ -15,11 +16,7 @@ export default function ProductsPage() {
   });
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/products")
-      .then((response) => response.json())
-      .then((data) => setProducts(data))
-      .catch((error) => console.error("Error fetching products:", error));
-
+    fetchProducts();
     fetch("http://127.0.0.1:5000/api/categories")
       .then((response) => response.json())
       .then((data) => setCategories(data))
@@ -32,6 +29,30 @@ export default function ProductsPage() {
 
   const closeEditModal = () => {
     setSelectedProduct(null);
+  };
+
+  const fetchProducts = (params = {}) => {
+    const queryParams = new URLSearchParams();
+
+    if (params.search) queryParams.append("search", params.search);
+    if (params.category && params.category !== "All categories")
+      queryParams.append("category", params.category);
+    if (params.descending) queryParams.append("descending", params.descending);
+
+    fetch(`http://127.0.0.1:5000/api/products?${queryParams.toString()}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setProducts(data);
+      })
+      .catch((error) => console.error("Error fetching products:", error));
+  };
+
+  const handleFilter = () => {
+    fetchProducts({
+      search: productName.trim(),
+      category: category,
+      descending: sortOrder === "Descending" ? "True" : undefined,
+    });
   };
 
   const handleSaveChanges = () => {
@@ -92,37 +113,6 @@ export default function ProductsPage() {
       .catch((err) => console.error("Error adding product:", err));
   };
 
-  const handleFilter = () => {
-    fetch("http://127.0.0.1:5000/api/products")
-      .then((res) => res.json())
-      .then((data) => {
-        let filtered = data;
-
-        if (productName.trim()) {
-          filtered = filtered.filter((product) =>
-            product.product_name
-              .toLowerCase()
-              .includes(productName.toLowerCase())
-          );
-        }
-
-        if (category !== "All categories") {
-          filtered = filtered.filter(
-            (product) => product.category_number == category
-          );
-        }
-
-        if (filtered.length === 0) {
-          setProducts([]);
-        } else {
-          setProducts(filtered);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-      });
-  };
-
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <header className="w-screen h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
@@ -172,6 +162,14 @@ export default function ProductsPage() {
               </option>
             ))}
           </select>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="flex-1 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
+          >
+            <option value="Ascending">Ascending</option>
+            <option value="Descending">Descending</option>
+          </select>
           <button
             onClick={handleFilter}
             className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
@@ -190,27 +188,17 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products &&
-                products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
-                    onDoubleClick={() => openEditModal(product)}
-                  >
-                    <td className="px-4 py-2">{product.product_name}</td>
-                    <td className="px-4 py-2">
-                      {categories.find(
-                        (cat) => cat.id == product.category_number
-                      )?.category_name || "Unknown"}
-                    </td>
-                    <td className="px-4 py-2">{product.characteristics}</td>
-                  </tr>
-                ))}{" "}
-              {!products && (
-                <tr className="border-b border-[#fff3ea] hover:bg-[#db6c1c]">
-                  text-center cursor-pointer"
+              {products.map((product) => (
+                <tr
+                  key={product.id}
+                  className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
+                  onDoubleClick={() => openEditModal(product)}
+                >
+                  <td className="px-4 py-2">{product.product_name}</td>
+                  <td className="px-4 py-2">{product.category_name}</td>
+                  <td className="px-4 py-2">{product.characteristics}</td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
