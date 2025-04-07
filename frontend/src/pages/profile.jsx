@@ -22,7 +22,7 @@ export default function UserProfile() {
         <div className="text-orange-50 text-3xl flex items-center">
           Zlahoda
           <img
-            src="static/bumbastik_thumbs.gif"
+            src="static/bumbastik/bumbastik_kisses.gif"
             alt="Loading GIF"
             className="w-15 h-15"
           />
@@ -45,6 +45,13 @@ export default function UserProfile() {
       </header>
 
       <main className="flex-grow flex items-center justify-center px-4 py-8">
+        <div>
+          <img
+            src="static/bumbastik/bumbastik_scary.gif"
+            alt="Loading GIF"
+            className="w-105 h-105"
+          />
+        </div>
         <div className="bg-[#fff3ea] flex flex-col items-center text-left space-y-4 w-full max-w-md">
           <h1 className="text-3xl font-bold text-[#f57b20]">Victoria Dyrda</h1>
           <p className="text-lg text-[#f57b20]">Manager</p>

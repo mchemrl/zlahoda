@@ -94,7 +94,7 @@ export default function ProductsPage() {
         <div className="text-orange-50 text-3xl flex items-center">
           Zlahoda
           <img
-            src="static/bumbastik_thumbs.gif"
+            src="static/bumbastik/bumbastik_thumbs.gif"
             alt="Loading GIF"
             className="w-15 h-15"
           />
