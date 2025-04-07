@@ -1,3 +1,5 @@
+from flask import session
+
 from backend.db import get_connection
 
 def fetch_store_product(upc):
@@ -5,7 +7,7 @@ def fetch_store_product(upc):
         with conn.cursor() as cur:
             query = """
                     select upc, upc_prom, p.id_product, selling_price, products_number,
-                    promotional_product, c.category_name, p.product_name
+                    promotional_product, c.category_name, p.product_name, p.characteristics
                     from store_product sp
                     join product p on p.id_product = sp.id_product
                     join category c on c.category_number = p.category_number
@@ -15,16 +17,25 @@ def fetch_store_product(upc):
             store_product = cur.fetchone()
 
             if store_product:
-                return {
-                    "upc": store_product[0],
-                    "upc_prom": store_product[1],
-                    "id_product": store_product[2],
-                    "selling_price": store_product[3],
-                    "products_number": store_product[4],
-                    "promotional_product": store_product[5],
-                    "category": store_product[6],
-                    "product_name": store_product[7],
-                }
+                if session.get('role') == 'manager':
+                    return {
+                        "upc": store_product[0],
+                        "upc_prom": store_product[1],
+                        "selling_price": store_product[3],
+                        "products_number": store_product[4],
+                        "promotional_product": store_product[5],
+                        "product_name": store_product[7],
+                        "characteristics": store_product[8],
+                    }
+                elif session.get('role') == 'cashier':
+                    return {
+                        "upc": store_product[0],
+                        "upc_prom": store_product[1],
+                        "id_product": store_product[2],
+                        "selling_price": store_product[3],
+                        "products_number": store_product[4],
+                        "promotional_product": store_product[5],
+                    }
             else:
                 return None
 
