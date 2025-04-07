@@ -3,25 +3,25 @@ from flask import Blueprint, request, jsonify
 
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
-products = Blueprint('products', __name__)
-
-
-@products.route('/', methods=['GET'])
+product = Blueprint('products', __name__)
+@product.route('/', methods=['GET'])
 def get_products():
     id_product = request.args.get('id_product', type=int)
-    if id_product is not None:
-        product = fetch_product(id_product)
-        if not product:
-            return jsonify({"error": "product not found"}), 404
-        return jsonify(product)
-
     category = request.args.get('category')
     search = request.args.get('search')
+    descending = request.args.get('descending')
 
-    return jsonify(fetch_products(category, search))
+    if id_product is not None:
+        product = fetch_product(id_product)
+        if product:
+            return jsonify(product)
+        else:
+            return jsonify({'error': 'product not found'}), 404
 
+    products = fetch_products(category, search, descending)
+    return jsonify(products)
 
-@products.route('/', methods=('POST',))
+@product.route('/', methods=('POST',))
 def add_product():
     data = request.json
     id_product = data.get('id_product')
@@ -37,11 +37,11 @@ def add_product():
     return jsonify({'message': 'product added!'}), 200
 
 
-@products.route('/', methods=['DELETE'])
+@product.route('/', methods=['DELETE'])
 def delete_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
-        return jsonify({'error': 'missing id_product'}), 400
+        return jsonify({'error': 'missing id_fsfsproduct'}), 400
 
     product = fetch_product(id_product)
     if not product:
@@ -49,6 +49,7 @@ def delete_product():
 
     try:
         dump_product(id_product)
+        return jsonify({'message': 'product deleted!'}), 200
     except psycopg2.IntegrityError as e:
         if 'foreign key constraint' in str(e).lower():
             return jsonify({'error': 'cannot delete product because it has associated store products'}), 400
@@ -57,8 +58,7 @@ def delete_product():
 
     return jsonify({'message': 'product deleted!'}), 200
 
-
-@products.route('/', methods=['PUT'])
+@product.route('/', methods=['PUT'])
 def update_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
@@ -83,3 +83,4 @@ def update_product():
         'product_name': product_name,
         'characteristics': characteristics
     }), 200
+
