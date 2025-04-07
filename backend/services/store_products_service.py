@@ -131,23 +131,22 @@ def edit_store_product(upc, id_product,selling_price,products_number,promotional
             cur.execute(query, (upc_prom, id_product, selling_price, products_number, promotional_product, upc))
             conn.commit()
 
-from psycopg2.extras import RealDictCursor
-
 def save_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom=None):
     with get_connection() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        with conn.cursor() as cur:
             cur.execute("""
                 select upc, products_number 
                 from store_product 
-                where id_product = %s""",
-                (id_product,))
+                where id_product = %s
+            """, (id_product,))
             existing = cur.fetchone()
 
     if existing:
-        old_upc = existing['upc']
-        new_qty = existing['products_number'] + products_number
-        edit_store_product(old_upc,id_product,selling_price,new_qty,promotional_product,upc_prom)
+        old_upc = existing[0]
+        old_qty = existing[1]
+        new_qty = old_qty + products_number
+        edit_store_product(old_upc, id_product, selling_price, new_qty, promotional_product, upc_prom)
         return old_upc
 
-    create_store_product(upc,id_product,selling_price,products_number,promotional_product,upc_prom)
+    create_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom)
     return upc
