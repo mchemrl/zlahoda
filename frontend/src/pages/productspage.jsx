@@ -10,6 +10,7 @@ export default function ProductsPage() {
   const [addProductModalOpen, setAddProductModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [newProduct, setNewProduct] = useState({
+    id_product: products.length,
     product_name: "",
     category_number: categories[0]?.id || "",
     characteristics: "",
@@ -24,7 +25,12 @@ export default function ProductsPage() {
   }, []);
 
   const openEditModal = (product) => {
-    setSelectedProduct({ ...product });
+    setSelectedProduct({
+      ...product,
+      category_number: categories.find(
+        (cat) => cat.category_name == product.category_name
+      ).id,
+    });
   };
 
   const closeEditModal = () => {
@@ -67,10 +73,17 @@ export default function ProductsPage() {
     )
       .then((response) => response.json())
       .then((updatedProduct) => {
+        const category = categories.find(
+          (cat) => cat.id === updatedProduct.category_number
+        );
+        const fullProduct = {
+          ...updatedProduct,
+          category_name:
+            category?.category_name || selectedProduct.category_name,
+        };
+
         setProducts((prevProducts) =>
-          prevProducts.map((p) =>
-            p.id === updatedProduct.id ? updatedProduct : p
-          )
+          prevProducts.map((p) => (p.id === fullProduct.id ? fullProduct : p))
         );
         closeEditModal();
       })
@@ -95,7 +108,7 @@ export default function ProductsPage() {
   };
 
   const handleAddProduct = () => {
-    fetch("http://127.0.0.1:5000/api/products", {
+    fetch("http://127.0.0.1:5000/api/products/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newProduct),
@@ -203,7 +216,14 @@ export default function ProductsPage() {
           </table>
         </div>
         <button
-          onClick={() => setAddProductModalOpen(true)}
+          onClick={() => {
+            setAddProductModalOpen(true);
+            setNewProduct({
+              ...newProduct,
+              id_product: products.length,
+              category_number: categories[0].id,
+            });
+          }}
           className="border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
         >
           Add new product
@@ -288,7 +308,10 @@ export default function ProductsPage() {
               type="text"
               value={newProduct.product_name}
               onChange={(e) =>
-                setNewProduct({ ...newProduct, product_name: e.target.value })
+                setNewProduct({
+                  ...newProduct,
+                  product_name: e.target.value,
+                })
               }
               placeholder="Product Name"
               className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"

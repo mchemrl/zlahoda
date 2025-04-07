@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
 
 export default function StoreProductsPage() {
   const [storeProducts, setStoreProducts] = useState([]);
@@ -9,15 +9,13 @@ export default function StoreProductsPage() {
   const [promotional, setPromotional] = useState(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/")
+    fetch("http://127.0.0.1:5000/api/store_products?sort=product_name")
       .then((response) => response.json())
-      .then((data) => setStoreProducts(data))
+      .then(() => {
+        (data) => setStoreProducts(data);
+        console.log(data);
+      })
       .catch((error) => console.error("Error fetching store products:", error));
-
-    fetch("http://127.0.0.1:5000/get_products")
-      .then((response) => response.json())
-      .then((data) => setProducts(data))
-      .catch((error) => console.error("Error fetching products:", error));
   }, []);
 
   const handleDeleteStoreProduct = (UPC) => {
