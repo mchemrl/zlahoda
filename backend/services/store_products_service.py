@@ -17,10 +17,12 @@ def fetch_store_product(upc):
             store_product = cur.fetchone()
 
             if store_product:
-                if session.get('role') == 'manager':
+               # if session.get('role') == 'manager':
+                if True:
                     return {
                         "upc": store_product[0],
                         "upc_prom": store_product[1],
+                        "id_product": store_product[2],
                         "selling_price": store_product[3],
                         "products_number": store_product[4],
                         "promotional_product": store_product[5],
@@ -128,3 +130,24 @@ def edit_store_product(upc, id_product,selling_price,products_number,promotional
                '''
             cur.execute(query, (upc_prom, id_product, selling_price, products_number, promotional_product, upc))
             conn.commit()
+
+from psycopg2.extras import RealDictCursor
+
+def save_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom=None):
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                select upc, products_number 
+                from store_product 
+                where id_product = %s""",
+                (id_product,))
+            existing = cur.fetchone()
+
+    if existing:
+        old_upc = existing['upc']
+        new_qty = existing['products_number'] + products_number
+        edit_store_product(old_upc,id_product,selling_price,new_qty,promotional_product,upc_prom)
+        return old_upc
+
+    create_store_product(upc,id_product,selling_price,products_number,promotional_product,upc_prom)
+    return upc

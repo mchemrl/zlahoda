@@ -1,7 +1,9 @@
 import psycopg2
 from flask import Blueprint, request, jsonify
 
-from ..services.store_products_service import fetch_store_products, fetch_store_product, edit_store_product, dump_store_product, create_store_product
+from ..services.store_products_service import (fetch_store_products, fetch_store_product,
+                                               edit_store_product, dump_store_product,
+                                               create_store_product, save_store_product)
 
 store_product = Blueprint('store_products', __name__)
 
@@ -37,9 +39,33 @@ def add_store_product():
     if not id_product or not UPC or not selling_price or not products_number:
         return jsonify({'error': 'missing required fields'}), 400
 
-    create_store_product(UPC, id_product, selling_price, products_number, promotional_product, UPC_prom);
+    upc_used = save_store_product(
+        UPC,
+        int(id_product),
+        float(selling_price),
+        int(products_number),
+        bool(promotional_product),
+        UPC_prom
+    )
 
-    return jsonify({'message': 'product added!'}), 200
+    prod = fetch_store_product(upc_used)
+    gross = float(prod['selling_price'])
+    net = round(gross / 1.2, 2)
+    vat = round(gross - net, 2)
+    final = round(gross * (0.8 if prod['promotional_product'] else 1), 2)
+
+    return jsonify({
+        'upc': upc_used,
+        'id_product': prod['id_product'],
+        'products_number': prod['products_number'],
+        'promotional_product': prod['promotional_product'],
+        'prices': {
+            'gross_price': gross,
+            'net_price': net,
+            'vat_amount': vat,
+            'final_price': final
+        }
+    }), 200
 
 @store_product.route('/', methods=['DELETE'])
 def delete_store_product():
@@ -47,8 +73,8 @@ def delete_store_product():
     if not upc:
         return jsonify({'error': 'missing upc'}), 400
 
-    store_product = fetch_store_product(upc)
-    if not store_product:
+    existing = fetch_store_product(upc)
+    if not existing:
         return jsonify({'error': 'store product not found'}), 404
 
     dump_store_product(upc)
@@ -60,8 +86,8 @@ def update_store_product():
     if not upc:
         return jsonify({'error': 'missing upc'}), 400
 
-    store_product = fetch_store_product(upc)
-    if not store_product:
+    existing = fetch_store_product(upc)
+    if not existing:
         return jsonify({'error': 'store product not found'}), 404
 
     data = request.json
@@ -72,12 +98,23 @@ def update_store_product():
     promotional_product = data.get('promotional_product', False)
 
     edit_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom)
+
+    gross = selling_price
+    net = round(gross / 1.2, 2)
+    vat = round(gross - net, 2)
+    final = round(gross * (0.8 if promotional_product else 1), 2)
+
     return jsonify({
         'upc': upc,
-        'id': id_product,
-        'selling_price': selling_price,
+        'id_product': id_product,
         'products_number': products_number,
-        'promotional_product': promotional_product
+        'promotional_product': promotional_product,
+        'prices': {
+            'gross_price': gross,
+            'net_price': net,
+            'vat_amount': vat,
+            'final_price': final
+        }
     }), 200
 
 
