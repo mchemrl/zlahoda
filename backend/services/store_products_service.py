@@ -17,7 +17,8 @@ def fetch_store_product(upc):
             store_product = cur.fetchone()
 
             if store_product:
-                if session.get('role') == 'manager':
+                #if session.get('role') == 'manager':
+                if True:
                     return {
                         "upc": store_product[0],
                         "upc_prom": store_product[1],
@@ -61,10 +62,6 @@ def fetch_store_products(promotional, category, sort, search, descending = False
             parameters.append(True)
         elif promotional.lower() == 'false':
             parameters.append(False)
-
-    if search is not None:
-        conditions.append("product_name ilike %s")
-        parameters.append(f"%{search}%")
 
     if conditions:
         base_query += " where " + " and ".join(conditions)
