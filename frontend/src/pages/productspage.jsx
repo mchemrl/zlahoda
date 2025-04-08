@@ -22,7 +22,7 @@ export default function ProductsPage() {
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
-  }, []);
+  }, [newProduct]);
 
   const openEditModal = (product) => {
     setSelectedProduct({
@@ -122,6 +122,7 @@ export default function ProductsPage() {
           category_number: categories[0]?.id || "",
           characteristics: "",
         });
+        fetchProducts();
       })
       .catch((err) => console.error("Error adding product:", err));
   };
@@ -192,7 +193,7 @@ export default function ProductsPage() {
         </div>
 
         <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
-          <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea]">
+          <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea] justify-space-between">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
                 <th className="px-4 py-2">Product</th>
@@ -201,17 +202,25 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
-                <tr
-                  key={product.id}
-                  className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
-                  onDoubleClick={() => openEditModal(product)}
-                >
-                  <td className="px-4 py-2">{product.product_name}</td>
-                  <td className="px-4 py-2">{product.category_name}</td>
-                  <td className="px-4 py-2">{product.characteristics}</td>
+              {products.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="text-center py-4 text-[#fff3ea]">
+                    -
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                products.map((product) => (
+                  <tr
+                    key={product.id}
+                    className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
+                    onDoubleClick={() => openEditModal(product)}
+                  >
+                    <td className="px-4 py-2">{product.product_name}</td>
+                    <td className="px-4 py-2">{product.category_name}</td>
+                    <td className="px-4 py-2">{product.characteristics}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -224,7 +233,7 @@ export default function ProductsPage() {
               category_number: categories[0].id,
             });
           }}
-          className="border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
         >
           Add new product
         </button>
