@@ -72,6 +72,7 @@ def login():
     session.clear()
     session['user_id'] = user[0]
     session['role'] = employee[0] if employee[0] else None
+    session.permanent = False
     return jsonify({
         'user_id': user[0],
         'role': employee[0],
