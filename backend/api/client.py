@@ -21,7 +21,6 @@ def get_clients():
     return jsonify(clients)
 
 @client.route('/', methods=('POST',))
-@cashier_required
 def add_client():
     data = request.json;
     card_number = data.get('card_number')
@@ -48,7 +47,6 @@ def add_client():
     return jsonify({'message': 'client added!'}), 200
 
 @client.route('/', methods=('PUT',))
-@cashier_required
 def update_client():
     card_number = request.args.get('card_number', type=str)
     if not card_number:
