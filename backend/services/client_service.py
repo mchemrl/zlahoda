@@ -1,3 +1,4 @@
+from backend.api import client
 from backend.db import get_connection
 
 def fetch_client(card_number):
@@ -22,8 +23,50 @@ def fetch_client(card_number):
             else:
                 return None
 
-def fetch_clients():
-    pass
+def fetch_clients(search, percent, descending=False):
+    base_query = """
+            select card_number, cust_surname, cust_name, cust_patronymic, phone_number, city, street, zip_code, percent
+            from customer_card
+        """
+
+    conditions = list()
+    parameters = list()
+
+    if search is not None:
+        conditions.append('cust_surname ilike %s')
+        parameters.append(f"%{search}%")
+
+    if percent is not None:
+        conditions.append('percent = %s')
+        parameters.append(percent)
+
+    if conditions:
+        base_query += ' where ' + ' and '.join(conditions)
+
+    base_query += ' order by cust_surname'
+
+    if descending:
+        base_query += ' desc'
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(base_query, tuple(parameters))
+            clients = cur.fetchall()
+
+    return [
+        {
+            'card_number': row[0],
+            'cust_surname': row[1],
+            'cust_name': row[2],
+            'cust_patronymic': row[3],
+            'phone_number': row[4],
+            'city': row[5],
+            'street': row[6],
+            'zip_code': row[7],
+            'percent': row[8]
+        }
+        for row in clients
+    ]
 
 def create_client(card_number, cust_surname, cust_name, cust_patronymic,
                     phone_number, city, street, zip_code, percent):

@@ -1,17 +1,22 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 from ..decorators import manager_required, cashier_required
-from ..services.client_service import edit_client, dump_client, create_client, fetch_client
+from ..services.client_service import edit_client, dump_client, create_client, fetch_client, fetch_clients
 
 client = Blueprint('client', __name__)
 
 @client.route('/', methods=('GET',))
-def get_client():
-    pass
-
-@client.route('/', methods=('GET',))
 def get_clients():
-    pass
+    if session.get('role') == 'Cashier':
+        search = request.args.get('search')
+    if session.get('role') == 'Manager':
+        percent = request.args.get('percent')
+    # search = request.args.get('search')
+    # percent = request.args.get('percent')
+    descending = request.args.get('descending')
+
+    clients = fetch_clients(search, percent, descending)
+    return jsonify(clients)
 
 @client.route('/', methods=('POST',))
 @cashier_required
@@ -39,7 +44,6 @@ def add_client():
     create_client(card_number, cust_surname, cust_name, cust_patronymic,
                   phone_number, city, street, zip_code, percent);
     return jsonify({'message': 'client added!'}), 200
-
 
 @client.route('/', methods=('PUT',))
 @cashier_required
@@ -87,7 +91,7 @@ def update_client():
     }), 200
 
 @client.route('/', methods=('DELETE',))
-#@manager_required
+@manager_required
 def delete_client():
     card_number = request.args.get('card_number')
     if not card_number:
