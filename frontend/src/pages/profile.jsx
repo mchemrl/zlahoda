@@ -7,7 +7,7 @@ export default function UserProfile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/auth/login")
+    fetch("http://localhost:5000/api/auth/login")
       .then((response) => response.json())
       .then((data) => setUser(data))
       .catch((error) => {

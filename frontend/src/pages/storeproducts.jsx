@@ -34,12 +34,15 @@ export default function StoreProductsPage() {
   }, [filter]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/categories")
+    fetch("http://localhost:5000/api/categories")
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
 
-    fetch(`http://127.0.0.1:5000/api/products?}`)
+    fetch(`http://localhost:5000/api/products?}`,
+        {
+          credentials: "include",
+        })
       .then((response) => response.json())
       .then((data) => {
         setProducts(data);
@@ -76,7 +79,7 @@ export default function StoreProductsPage() {
       params.append("category", category);
     else params.delete("category");
 
-    const url = `http://127.0.0.1:5000/api/store_products?${params.toString()}`;
+    const url = `http://localhost:5000/api/store_products?${params.toString()}`;
     console.log(params);
 
     fetch(url)
@@ -94,8 +97,9 @@ export default function StoreProductsPage() {
   };
 
   const handleDeleteStoreProduct = (upc) => {
-    fetch(`http://127.0.0.1:5000/store_product/${upc}`, {
+    fetch(`http://localhost:5000/store_product/${upc}`, {
       method: "DELETE",
+      credentials: "include",
     })
       .then(() => {
         setStoreProducts((prev) => prev.filter((p) => p.upc !== upc));
@@ -104,12 +108,13 @@ export default function StoreProductsPage() {
   };
 
   const handleAddStoreProduct = () => {
-    fetch("http://127.0.0.1:5000/api/store_product", {
+    fetch("http://localhost:5000/api/store_product", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newStoreProduct),
+      credentials: "include",
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to add store product");

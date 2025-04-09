@@ -1,12 +1,13 @@
 import psycopg2
 from flask import Blueprint, request, jsonify
 
-from ..decorators import manager_required
+from ..decorators import manager_required, login_required
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
 products = Blueprint('products', __name__)
 
 @products.route('/', methods=['GET'])
+@login_required
 def get_products():
     id_product = request.args.get('id_product', type=int)
     category = request.args.get('category')
