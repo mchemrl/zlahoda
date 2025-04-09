@@ -17,7 +17,10 @@ export default function ProductsPage() {
 
   useEffect(() => {
     handleFilter();
-    fetch("http://127.0.0.1:5000/api/categories")
+    fetch("http://localhost:5000/api/categories",
+        {
+          credentials: "include",
+        })
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
@@ -44,7 +47,10 @@ export default function ProductsPage() {
       queryParams.append("category", params.category);
     if (params.descending) queryParams.append("descending", params.descending);
 
-    fetch(`http://127.0.0.1:5000/api/products?${queryParams.toString()}`)
+    fetch(`http://localhost:5000/api/products?${queryParams.toString()}`,
+        {
+            credentials: "include",
+        })
       .then((response) => response.json())
       .then((data) => {
         setProducts(data);
@@ -63,11 +69,12 @@ export default function ProductsPage() {
   const handleSaveChanges = () => {
     if (!selectedProduct) return;
     fetch(
-      `http://127.0.0.1:5000/api/products/?id_product=${selectedProduct.id}`,
+      `http://localhost:5000/api/products/?id_product=${selectedProduct.id}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(selectedProduct),
+        credentials: "include",
       }
     )
       .then((response) => response.json())
@@ -92,9 +99,10 @@ export default function ProductsPage() {
   const handleDeleteProduct = () => {
     if (!selectedProduct) return;
     fetch(
-      `http://127.0.0.1:5000/api/products/?id_product=${selectedProduct.id}`,
+      `http://localhost:5000/api/products/?id_product=${selectedProduct.id}`,
       {
         method: "DELETE",
+        credentials : "include",
       }
     )
       .then(() => {
@@ -107,9 +115,10 @@ export default function ProductsPage() {
   };
 
   const handleAddProduct = () => {
-    fetch("http://127.0.0.1:5000/api/products/", {
+    fetch("http://localhost:5000/api/products/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         product_name: newProduct.product_name,
         category_number: newProduct.category_number,

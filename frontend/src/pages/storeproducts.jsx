@@ -34,7 +34,10 @@ export default function StoreProductsPage() {
   }, [filter]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch("http://localhost:5000/api/categories",
+        {
+            credentials: "include",
+        })
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
@@ -82,7 +85,10 @@ export default function StoreProductsPage() {
     const url = `http://localhost:5000/api/store_products?${params.toString()}`;
     console.log(params);
 
-    fetch(url)
+    fetch(url,
+        {
+            credentials: "include",
+        })
       .then((response) => response.json())
       .then((data) => {
         setStoreProducts(Array.isArray(data) ? data : [data]);
