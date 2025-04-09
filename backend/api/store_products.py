@@ -40,6 +40,12 @@ def add_store_product():
     if not id_product or not UPC or not selling_price or not products_number:
         return jsonify({'error': 'missing required fields'}), 400
 
+    if selling_price <= 0:
+        return jsonify({'error': 'invalid selling_price'}), 400
+
+    if products_number <= 0:
+        return jsonify({'error': 'invalid products_number'}), 400
+
     upc_used = save_store_product(
         UPC,
         int(id_product),
