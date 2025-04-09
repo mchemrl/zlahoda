@@ -10,7 +10,7 @@ def create_app():
     app.config['SECRET_KEY'] = "ICanDoItWithABrokenHeart"
     CORS(app,
          resources={r"/*": {
-             "origins": "http://localhost:5173",
+             "origins": "*",
              "methods": ["GET", "POST", "PUT", "DELETE"],
              "supports_credentials": True,
          }})
