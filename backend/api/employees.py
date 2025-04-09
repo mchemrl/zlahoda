@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, jsonify, request
 
 from backend.services.employees_service import fetch_employees, fetch_employee_by_id, create_employee, edit_employee, \
@@ -40,6 +42,12 @@ def add_employee():
     if not all(employee):
         return jsonify({"error": "All fields are required"}), 400
 
+    if not re.match(r'^\+[0-9]{12}$', employee[7]):
+        return jsonify({'error': 'invalid phone number'}), 400
+
+    if employee[4] <= 0:
+        return jsonify({'error': 'invalid salary'}), 400
+
     result = create_employee(employee)
     if not result:
         return jsonify({"error": "Employee already exists"}), 400
@@ -71,6 +79,12 @@ def update_employee():
 
     if not all(employee):
         return jsonify({"error": "All fields are required"}), 400
+
+    if not re.match(r'^\+[0-9]{12}$', employee[7]):
+        return jsonify({'error': 'invalid phone number'}), 400
+
+    if employee[4] <= 0:
+        return jsonify({'error': 'invalid salary'}), 400
 
     if not fetch_employee_by_id(employee_id):
         return jsonify({"error": "Employee not found"}), 404
