@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, jsonify, request, session
 
 from ..decorators import manager_required, cashier_required
@@ -38,7 +40,7 @@ def add_client():
     if percent <= 0 or percent > 100:
         return jsonify({'error': 'invalid percent'}), 400
 
-    if len(phone_number) > 13 or not phone_number.startswith('+'):
+    if not re.match(r'^\+[0-9]{12}$', phone_number):
         return jsonify({'error': 'invalid phone number'}), 400
 
     create_client(card_number, cust_surname, cust_name, cust_patronymic,
@@ -73,7 +75,7 @@ def update_client():
     if percent <= 0 or percent > 100:
         return jsonify({'error': 'invalid percent'}), 400
 
-    if len(phone_number) > 13 or not phone_number.startswith('+'):
+    if not re.match(r'^\+[0-9]{12}$', phone_number):
         return jsonify({'error': 'invalid phone number'}), 400
 
     edit_client(card_number, cust_surname, cust_name, cust_patronymic,phone_number, city, street, zip_code, percent)
