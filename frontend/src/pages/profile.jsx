@@ -45,13 +45,14 @@ export default function UserProfile() {
       </header>
 
       <main className="flex-grow flex flex-row items-center justify-center w-full h-screen overflow-hidden px-8 py-8">
-         <div><img
+        <div>
+          <img
             src="static/bumbastik/bumbastik_scary.gif"
             alt="Loading GIF"
             className="w-105 h-105"
-          /></div>
+          />
+        </div>
         <div className="bg-[#fff3ea] flex flex-col items-center text-left space-y-4 w-full max-w-md">
-
           <h1 className="text-3xl font-bold text-[#f57b20]">Victoria Dyrda</h1>
           <p className="text-lg text-[#f57b20]">Manager</p>
           <div className="bg-[#f57b20] p-6 rounded-lg shadow-md text-white w-full shadow-lg">
@@ -61,7 +62,6 @@ export default function UserProfile() {
             <p>Home address: Kyiv, Oleksandry Ekster</p>
             <p>Card number: 3940258</p>
           </div>
-
 
           <div className="flex space-x-4 mt-4">
             <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700 cursor-pointer">

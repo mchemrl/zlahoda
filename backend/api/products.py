@@ -27,17 +27,28 @@ def get_products():
 @manager_required
 def add_product():
     data = request.json
-    id_product = data.get('id_product')
     category_number = data.get('category_number')
     product_name = data.get('product_name')
     characteristics = data.get('characteristics')
 
-    if not id_product or not category_number or not product_name or not characteristics:
+    if not category_number or not product_name or not characteristics:
         return jsonify({'error': 'missing required fields'}), 400
 
-    create_product(id_product, category_number, product_name, characteristics);
+    try:
+        from ..db import get_connection 
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT MAX(id_product) FROM product")
+                result = cur.fetchone()
+                next_id = (result[0] or 0) + 1
 
-    return jsonify({'message': 'product added!'}), 200
+                create_product(next_id, category_number, product_name, characteristics)
+
+                conn.commit()
+    except Exception as e:
+        return jsonify({'error': 'Failed to add product', 'details': str(e)}), 500
+
+    return jsonify({'message': 'product added!', 'id_product': next_id}), 200
 
 
 @products.route('/', methods=['DELETE'])

@@ -10,19 +10,18 @@ export default function ProductsPage() {
   const [addProductModalOpen, setAddProductModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [newProduct, setNewProduct] = useState({
-    id_product: products.length,
     product_name: "",
     category_number: categories[0]?.id || "",
     characteristics: "",
   });
 
   useEffect(() => {
-    fetchProducts();
+    handleFilter();
     fetch("http://127.0.0.1:5000/api/categories")
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
-  }, [newProduct]);
+  }, [newProduct, selectedProduct]);
 
   const openEditModal = (product) => {
     setSelectedProduct({
@@ -111,7 +110,11 @@ export default function ProductsPage() {
     fetch("http://127.0.0.1:5000/api/products/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newProduct),
+      body: JSON.stringify({
+        product_name: newProduct.product_name,
+        category_number: newProduct.category_number,
+        characteristics: newProduct.characteristics,
+      }),
     })
       .then((res) => res.json())
       .then((createdProduct) => {
@@ -122,7 +125,6 @@ export default function ProductsPage() {
           category_number: categories[0]?.id || "",
           characteristics: "",
         });
-        fetchProducts();
       })
       .catch((err) => console.error("Error adding product:", err));
   };
@@ -228,9 +230,9 @@ export default function ProductsPage() {
           onClick={() => {
             setAddProductModalOpen(true);
             setNewProduct({
-              ...newProduct,
-              id_product: products.length,
-              category_number: categories[0].id,
+              product_name: "",
+              category_number: categories[0]?.id || "",
+              characteristics: "",
             });
           }}
           className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"

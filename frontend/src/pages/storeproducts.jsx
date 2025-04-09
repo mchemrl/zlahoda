@@ -271,7 +271,7 @@ export default function StoreProductsPage() {
       </main>
       {addStoreProductModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-          <form className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
               onClick={() => setAddStoreProductModalOpen(false)}
               className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
@@ -352,7 +352,7 @@ export default function StoreProductsPage() {
             >
               Add Store Product
             </button>
-          </form>
+          </div>
         </div>
       )}
     </div>
