@@ -1,13 +1,30 @@
 from backend.db import get_connection
 
 
-def fetch_employees():
+def fetch_employees(sort_by=None, is_ascending=None, role=None, search_by=None, search_value=None):
+    query = '''select * from employee'''
+    clauses = []
+    params = []
+
+    if role is not None:
+        clauses.append(f'empl_role = %s')
+        params.append(role)
+
+    if search_by is not None and search_value is not None:
+        clauses.append(f"{search_by} ilike %s")
+        params.append(f"%{search_value}%")
+
+    if clauses:
+        query += ' where ' + ' and '.join(clauses)
+
+    if sort_by is not None and is_ascending is not None:
+        direction = 'asc' if is_ascending else 'desc'
+        query += f' order by {sort_by} {direction}'
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            query = 'select * from employee'
-            cur.execute(query)
+            cur.execute(query, params)
             employees = cur.fetchall()
-
             return [
                 {
                     "id_employee": row[0],
@@ -59,19 +76,13 @@ def fetch_employee_by_id(employee_id):
 def create_employee(employee):
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM employee WHERE id_employee = %s", (employee[0],))
-            if cur.fetchone() is not None:
-                return False
-
             query = '''
-                INSERT INTO employee (id_employee, empl_name, empl_surname, empl_patronymic, empl_role,
+                insert into employee (id_employee, empl_name, empl_surname, empl_patronymic, empl_role,
                                       salary, date_of_birth, date_of_start, phone_number, city, street, zip_code)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             '''
             cur.execute(query, employee[:])
             conn.commit()
-
-    return True
 
 
 def edit_employee(employee):
