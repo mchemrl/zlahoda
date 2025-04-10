@@ -1,9 +1,9 @@
 import re
 
+from datetime import datetime
 from flask import Blueprint, jsonify, request, session
-
 from backend.services.employees_service import fetch_employees, fetch_employee_by_id, create_employee, edit_employee, \
-    dump_employee
+    dump_employee, validate_employee
 
 employees = Blueprint('employees', __name__)
 
@@ -58,79 +58,27 @@ def get_employees():
 
 
 @employees.route('/', methods=('POST',))
-def add_employees():
-    data = request.get_json()
-    employee = (
-        data.get('employee_id'),
-        data.get('employee_name'),
-        data.get('employee_surname'),
-        data.get('employee_patronymic'),
-        data.get('employee_role'),
-        int(data.get('salary')),
-        data.get('date_of_birth'),
-        data.get('date_of_start'),
-        data.get('phone_number'),
-        data.get('city'),
-        data.get('street'),
-        data.get('zip_code')
-    )
-
-    if not all(employee):
-        return jsonify({"error": "All fields are required"}), 400
-
-    if employee[4] not in ('Manager', 'Cashier'):
-        return jsonify({"error": "invalid role"}), 400
-
-    if employee[5] <= 0:
-        return jsonify({'error': 'invalid salary'}), 400
-
-    if not re.match(r'^\+[0-9]{12}$', employee[8]):
-        return jsonify({'error': 'invalid phone number'}), 400
+def add_employee():
+    employee = validate_employee(request.get_json())
 
     if fetch_employee_by_id(employee[0]) is not None:
         return jsonify({"error": "employee already exists"}), 400
 
-    create_employee(employee)
+    create_employee(tuple(employee))
 
     return jsonify({"message": "Employee created successfully"}), 201
 
 
 @employees.route('/', methods=('PUT',))
 def update():
-    data = request.get_json()
     employee_id = request.args.get('employee_id', type=str)
     if not employee_id:
-        return jsonify({"error": "Employee ID is required"}), 400
-
-    employee = (
-        data.get('employee_name'),
-        data.get('employee_surname'),
-        data.get('employee_patronymic'),
-        data.get('employee_role'),
-        int(data.get('salary')),
-        data.get('date_of_birth'),
-        data.get('date_of_start'),
-        data.get('phone_number'),
-        data.get('city'),
-        data.get('street'),
-        data.get('zip_code'),
-        employee_id
-    )
-
-    if not all(employee):
-        return jsonify({"error": "All fields are required"}), 400
-
-    if employee[3] not in ('Manager', 'Cashier'):
-        return jsonify({"error": "invalid role"}), 400
-
-    if employee[4] <= 0:
-        return jsonify({'error': 'invalid salary'}), 400
-
-    if not re.match(r'^\+[0-9]{12}$', employee[7]):
-        return jsonify({'error': 'invalid phone number'}), 400
+        return jsonify({"error": "employee ID is required"}), 400
 
     if not fetch_employee_by_id(employee_id):
-        return jsonify({"error": "Employee not found"}), 404
+        return jsonify({"error": "employee not found"}), 404
+
+    employee = validate_employee(request.get_json(), employee_id)
 
     edit_employee(employee)
     return jsonify({"message": "Employee updated successfully"}), 200
