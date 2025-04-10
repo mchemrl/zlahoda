@@ -9,7 +9,7 @@ categories = Blueprint('categories', __name__)
 
 @categories.route('/', methods=('GET',))
 def get_categories():
-    category_id = request.args.get('category_id')
+    category_id = request.args.get('category_id', type=str)
     if category_id is not None:
         category = fetch_category_by_id(category_id)
         if not category:
@@ -19,10 +19,13 @@ def get_categories():
             "category_name": category[1]
         })
 
-    sort_by = request.args.get('sort_by')
-    is_ascending = request.args.get('is_ascending')
-    if is_ascending is not None:
-        is_ascending = is_ascending.lower() == 'true'
+    sort_by = request.args.get('sort_by', type=str)
+    is_ascending = request.args.get('is_ascending', type=int) # expected to be 0, 1 or None
+    if sort_by is not None and is_ascending is not None:
+        if sort_by in ['category_number', 'category_name']:
+            is_ascending = bool(is_ascending)
+        else:
+            return jsonify({"error": "invalid sort category"}), 400
 
     categories_query_res = fetch_categories(sort_by, is_ascending)
     category_list = list()
@@ -31,7 +34,6 @@ def get_categories():
             "id": row[0],
             "category_name": row[1]
         })
-
     return jsonify(category_list)
 
 
@@ -43,10 +45,10 @@ def add_category():
 
     if not category_name:
         return jsonify({"error": "category name is required"}), 400
-
-    result = create_category(category_id, category_name)
-    if not result:
+    if fetch_category_by_id(category_id) is not None:
         return jsonify({"error": "category already exists"}), 400
+
+    create_category(category_id, category_name)
 
     return jsonify({"message": "category created successfully"}), 201
 
