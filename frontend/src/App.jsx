@@ -4,6 +4,7 @@ import Login from "./pages/loginpage";
 import ProductsPage from "./pages/productspage";
 import StoreProducts from "./pages/storeproducts";
 import ProfilePage from "./pages/profile";
+import ClientsPage from "./pages/clientspage";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/store-products" element={<StoreProducts />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/clients" element={<ClientsPage />} />
     </Routes>
   );
 }

@@ -34,18 +34,16 @@ export default function StoreProductsPage() {
   }, [filter]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories",
-        {
-            credentials: "include",
-        })
+    fetch("http://localhost:5000/api/categories", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
 
-    fetch(`http://localhost:5000/api/products?}`,
-        {
-          credentials: "include",
-        })
+    fetch(`http://localhost:5000/api/products?}`, {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         setProducts(data);
@@ -85,10 +83,9 @@ export default function StoreProductsPage() {
     const url = `http://localhost:5000/api/store_products?${params.toString()}`;
     console.log(params);
 
-    fetch(url,
-        {
-            credentials: "include",
-        })
+    fetch(url, {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         setStoreProducts(Array.isArray(data) ? data : [data]);
@@ -114,12 +111,32 @@ export default function StoreProductsPage() {
   };
 
   const handleAddStoreProduct = () => {
-    fetch("http://localhost:5000/api/store_product", {
+    const payload = {
+      id_product: parseInt(newStoreProduct.id_product),
+      UPC: newStoreProduct.upc.trim(),
+      UPC_prom: newStoreProduct.upc_prom?.trim() || null,
+      selling_price: parseFloat(newStoreProduct.selling_price),
+      products_number: parseInt(newStoreProduct.products_number),
+      promotional_product: Boolean(newStoreProduct.promotional_product),
+    };
+    console.log(payload);
+
+    if (
+      !payload.id_product ||
+      !payload.UPC ||
+      !payload.selling_price ||
+      !payload.products_number
+    ) {
+      console.error("Missing required fields");
+      return;
+    }
+
+    fetch("http://localhost:5000/api/store_product/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(newStoreProduct),
+      body: JSON.stringify(payload),
       credentials: "include",
     })
       .then((res) => {
@@ -154,7 +171,9 @@ export default function StoreProductsPage() {
         </div>
         <nav className="flex space-x-6 text-orange-50 text-lg">
           <ul className="flex space-x-6">
-            <li className="cursor-pointer hover:underline">Client</li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/clients">Client</Link>
+            </li>
             <li className="cursor-pointer hover:underline">
               <Link to="/products">Products</Link>
             </li>

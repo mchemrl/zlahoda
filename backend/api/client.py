@@ -9,12 +9,12 @@ client = Blueprint('client', __name__)
 
 @client.route('/', methods=('GET',))
 def get_clients():
-    if session.get('role') == 'Cashier':
-        search = request.args.get('search')
-    if session.get('role') == 'Manager':
-        percent = request.args.get('percent')
-    # search = request.args.get('search')
-    # percent = request.args.get('percent')
+    # if session.get('role') == 'Cashier':
+    #     search = request.args.get('search')
+    # if session.get('role') == 'Manager':
+    #     percent = request.args.get('percent')
+    search = request.args.get('search')
+    percent = request.args.get('percent')
     descending = request.args.get('descending')
 
     clients = fetch_clients(search, percent, descending)

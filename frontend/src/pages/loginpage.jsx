@@ -19,6 +19,8 @@ export default function LoginPage() {
       if (!response.ok) {
         throw new Error("Login failed");
       }
+      const data = await response.json();
+      localStorage.setItem("role", data.role);
 
       navigate("/products");
     } catch (err) {

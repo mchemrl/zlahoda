@@ -7,10 +7,9 @@ export default function UserProfile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/login",
-        {
-          credentials : "include",
-        })
+    fetch("http://localhost:5000/api/auth/login", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => setUser(data))
       .catch((error) => {

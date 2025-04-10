@@ -17,10 +17,9 @@ export default function ProductsPage() {
 
   useEffect(() => {
     handleFilter();
-    fetch("http://localhost:5000/api/categories",
-        {
-          credentials: "include",
-        })
+    fetch("http://localhost:5000/api/categories", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
@@ -47,10 +46,9 @@ export default function ProductsPage() {
       queryParams.append("category", params.category);
     if (params.descending) queryParams.append("descending", params.descending);
 
-    fetch(`http://localhost:5000/api/products?${queryParams.toString()}`,
-        {
-            credentials: "include",
-        })
+    fetch(`http://localhost:5000/api/products?${queryParams.toString()}`, {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         setProducts(data);
@@ -102,7 +100,7 @@ export default function ProductsPage() {
       `http://localhost:5000/api/products/?id_product=${selectedProduct.id}`,
       {
         method: "DELETE",
-        credentials : "include",
+        credentials: "include",
       }
     )
       .then(() => {
@@ -151,7 +149,9 @@ export default function ProductsPage() {
         </div>
         <nav className="flex space-x-6 text-orange-50 text-lg">
           <ul className="flex space-x-6">
-            <li className="cursor-pointer hover:underline">Client</li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/clients">Client</Link>
+            </li>
             <li className="cursor-pointer hover:underline">
               <Link to="/products">Products</Link>
             </li>
@@ -235,22 +235,24 @@ export default function ProductsPage() {
             </tbody>
           </table>
         </div>
-        <button
-          onClick={() => {
-            setAddProductModalOpen(true);
-            setNewProduct({
-              product_name: "",
-              category_number: categories[0]?.id || "",
-              characteristics: "",
-            });
-          }}
-          className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
-        >
-          Add new product
-        </button>
+        {localStorage.getItem("role") === "Manager" && (
+          <button
+            onClick={() => {
+              setAddProductModalOpen(true);
+              setNewProduct({
+                product_name: "",
+                category_number: categories[0]?.id || "",
+                characteristics: "",
+              });
+            }}
+            className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          >
+            Add new product
+          </button>
+        )}
       </main>
 
-      {selectedProduct && (
+      {selectedProduct && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
@@ -314,7 +316,7 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
-      {addProductModalOpen && (
+      {addProductModalOpen && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
