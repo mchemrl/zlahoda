@@ -1,15 +1,23 @@
 import re
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 from backend.services.employees_service import fetch_employees, fetch_employee_by_id, create_employee, edit_employee, \
     dump_employee
 
 employees = Blueprint('employees', __name__)
 
+@employees.route('/me', methods=('GET',))
+def get_me():
+    my_employee_id = session.get('user_id')
+    print(my_employee_id)
+    if not my_employee_id:
+        return jsonify({"error": "not logged in"}), 401
+    employees_res = fetch_employee_by_id(my_employee_id)
+    return jsonify(employees_res)
 
 @employees.route('/', methods=('GET',))
-def get_employees():
+def get():
     employee_id = request.args.get('employee_id')
     if employee_id:
         employees_res = fetch_employee_by_id(employee_id)
@@ -22,7 +30,7 @@ def get_employees():
 
 
 @employees.route('/', methods=('POST',))
-def add_employee():
+def add():
     data = request.get_json()
     employee = (
         data.get('employee_id'),
@@ -56,7 +64,7 @@ def add_employee():
 
 
 @employees.route('/', methods=('PUT',))
-def update_employee():
+def update():
     data = request.get_json()
     employee_id = request.args.get('employee_id')
     if not employee_id:
@@ -94,7 +102,7 @@ def update_employee():
 
 
 @employees.route('/', methods=('DELETE',))
-def delete_employee():
+def delete():
     employee_id = request.args.get('employee_id')
     if not employee_id:
         return jsonify({"error": "Employee ID is required"}), 400
