@@ -27,7 +27,7 @@ def get_store_products():
         return jsonify(products)
 
 @store_product.route('/', methods=('POST',))
-@manager_required
+#@manager_required
 def add_store_product():
     data = request.json
     id_product = data.get('id_product')
@@ -44,10 +44,9 @@ def add_store_product():
         return jsonify({'error': 'invalid selling_price'}), 400
 
     if products_number <= 0:
-        return jsonify({'error': 'invalid products_number'}), 400
+       return jsonify({'error': 'invalid products_number'}), 400
 
-    upc_used = save_store_product(
-        UPC,
+    upc_used = save_store_product(UPC,
         int(id_product),
         float(selling_price),
         int(products_number),
@@ -55,7 +54,9 @@ def add_store_product():
         UPC_prom
     )
 
-    prod = fetch_store_product(upc_used)
+    prod = fetch_store_product(UPC)
+    if prod:
+        print(f'is prod: {prod}')
     gross = float(prod['selling_price'])
     net = round(gross / 1.2, 2)
     vat = round(gross - net, 2)
@@ -72,7 +73,7 @@ def add_store_product():
             'vat_amount': vat,
             'final_price': final
         }
-    }), 200
+       }), 200
 
 @store_product.route('/', methods=['DELETE'])
 @manager_required

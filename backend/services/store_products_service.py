@@ -18,6 +18,7 @@ def fetch_store_product(upc):
 
             if store_product:
                 if session.get('role') == 'Manager':
+                #if True:
                     return {
                         "upc": store_product[0],
                         "upc_prom": store_product[1],
@@ -94,7 +95,7 @@ def fetch_store_products(promotional, category, sort, descending = False):
         for row in store_products
     ]
 
-def create_store_product(UPC,id_product,selling_price,products_number,promotional_product, UPC_prom=None):
+def create_store_product(UPC,id_product,selling_price,products_number,promotional_product, UPC_prom):
     with get_connection() as conn:
         with conn.cursor() as cur:
             query = """
@@ -126,17 +127,18 @@ def edit_store_product(upc, id_product,selling_price,products_number,promotional
             cur.execute(query, (upc_prom, id_product, selling_price, products_number, promotional_product, upc))
             conn.commit()
 
-def save_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom=None):
+def save_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 select upc, products_number 
                 from store_product 
-                where id_product = %s
-            """, (id_product,))
+                where upc = %s
+            """, (upc,))
             existing = cur.fetchone()
 
     if existing:
+        print('is existing')
         old_upc = existing[0]
         old_qty = existing[1]
         new_qty = old_qty + products_number
