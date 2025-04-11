@@ -130,7 +130,7 @@ def edit_store_product(upc, id_product, selling_price, new_products_number, prom
             if old_promotional_flag and not promotional_product:
                 if not upc_prom:
                     raise ValueError(
-                        "Для переходу з промоційного в не-промоційний потрібно вказати UPC_prom базового продукту")
+                        "to change from prom to non-prom you need upc_prom")
                 cur.execute("""
                     select upc, products_number
                     from store_product
@@ -138,7 +138,7 @@ def edit_store_product(upc, id_product, selling_price, new_products_number, prom
                 """, (upc_prom,))
                 base_product = cur.fetchone()
                 if not base_product:
-                    raise ValueError("Base product not found for merging")
+                    raise ValueError("base product not found for merging")
                 base_upc, base_qty = base_product
                 merged_qty = base_qty + new_products_number
                 cur.execute("""
@@ -154,7 +154,7 @@ def edit_store_product(upc, id_product, selling_price, new_products_number, prom
             else:
                 if promotional_product:
                     if not upc_prom:
-                        raise ValueError("Для промоційного продукту потрібно вказати UPC_prom")
+                        raise ValueError("enter upc_prom")
                     cur.execute("""
                         select upc, products_number
                         from store_product
@@ -162,13 +162,13 @@ def edit_store_product(upc, id_product, selling_price, new_products_number, prom
                     """, (upc_prom,))
                     base_product = cur.fetchone()
                     if not base_product:
-                        raise ValueError("Base product not found")
+                        raise ValueError("base product not found")
                     base_upc, base_qty = base_product
                     diff = new_products_number - old_products_number
                     new_base_qty = base_qty - diff
                     if new_base_qty < 0:
                         raise ValueError(
-                            f"Недостатньо базового продукту. Доступно: {base_qty}, потрібно змінити на: {diff}")
+                            f"Not enough base product quantity. Available: {base_qty}, need to change to: {diff}")
                     cur.execute("""
                         update store_product
                         set products_number = %s
