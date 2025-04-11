@@ -17,8 +17,8 @@ def fetch_store_product(upc):
             store_product = cur.fetchone()
 
             if store_product:
-                if session.get('role') == 'Manager':
-                #if True:
+                #if session.get('role') == 'Manager':
+                if True:
                     return {
                         "upc": store_product[0],
                         "upc_prom": store_product[1],
@@ -127,23 +127,63 @@ def edit_store_product(upc, id_product,selling_price,products_number,promotional
             cur.execute(query, (upc_prom, id_product, selling_price, products_number, promotional_product, upc))
             conn.commit()
 
-def save_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom):
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                select upc, products_number 
-                from store_product 
-                where upc = %s
-            """, (upc,))
-            existing = cur.fetchone()
 
-    if existing:
-        print('is existing')
-        old_upc = existing[0]
-        old_qty = existing[1]
-        new_qty = old_qty + products_number
-        edit_store_product(old_upc, id_product, selling_price, new_qty, promotional_product, upc_prom)
-        return old_upc
+def save_store_product(UPC, id_product, selling_price, products_number, promotional_product, upc_prom):
+    if not promotional_product:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    select upc, products_number 
+                    from store_product 
+                    where upc = %s
+                """, (UPC,))
+                existing = cur.fetchone()
 
-    create_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom)
-    return upc
+                if existing:
+                    old_upc = existing[0]
+                    old_qty = existing[1]
+                    new_qty = old_qty + products_number
+                    edit_store_product(old_upc, id_product, selling_price, new_qty, promotional_product, upc_prom)
+                    conn.commit()
+                    return old_upc
+                else:
+                    create_store_product(UPC, id_product, selling_price, products_number, promotional_product, None)
+                    conn.commit()
+                    return UPC
+
+    else:
+        if not upc_prom:
+            raise ValueError('for promotional product you need to enter UPC_prom.')
+
+        base_product = fetch_store_product(upc_prom)
+        if not base_product:
+            raise ValueError('base product not found, so you cannot add promotional.')
+
+        if base_product['promotional_product'] == True:
+            raise ValueError('not possible to add promotional product, if base product is promotional')
+
+        if base_product['products_number'] < products_number:
+            raise ValueError('not enough quantity of base product to create a promotional product. ' \
+                             f'Available {base_product['products_number']}, and you need {products_number}.')
+
+        new_base_qty = base_product['products_number'] - products_number
+        edit_store_product(upc_prom, base_product['id_product'], base_product['selling_price'], new_base_qty,
+                           base_product['promotional_product'], base_product.get('upc_prom'))
+
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    select upc, products_number 
+                    from store_product 
+                    where upc = %s
+                """, (UPC,))
+                promo_existing = cur.fetchone()
+
+                if promo_existing:
+                    old_qty = promo_existing[1]
+                    new_qty = old_qty + products_number
+                    edit_store_product(UPC, id_product, selling_price, new_qty, promotional_product, upc_prom)
+                else:
+                    create_store_product(UPC, id_product, selling_price, products_number, promotional_product, upc_prom)
+                conn.commit()
+        return UPC
