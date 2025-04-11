@@ -4,7 +4,8 @@ from flask import Blueprint, request, jsonify
 from ..decorators import manager_required
 from ..services.store_products_service import (fetch_store_products, fetch_store_product,
                                                edit_store_product, dump_store_product,
-                                               create_store_product, save_store_product)
+                                               create_store_product, save_store_product,
+                                               fetch_store_product_by_id_product_and_promo)
 
 store_product = Blueprint('store_products', __name__)
 
@@ -39,6 +40,10 @@ def add_store_product():
 
     if not id_product or not UPC or not selling_price or not products_number:
         return jsonify({'error': 'missing required fields'}), 400
+
+    existing = fetch_store_product_by_id_product_and_promo(id_product, promotional_product)
+    if existing:
+        return jsonify({'error': 'store product with this id_product and promotional flag already exists'}), 400
 
     if selling_price <= 0:
         return jsonify({'error': 'invalid selling_price'}), 400
@@ -91,7 +96,7 @@ def delete_store_product():
     return jsonify({'message': 'store product deleted!'}), 200
 
 @store_product.route('/', methods=['PUT'])
-#@manager_required
+@manager_required
 def update_store_product():
     upc = request.args.get('upc', type=str)
     if not upc:
@@ -107,6 +112,10 @@ def update_store_product():
     selling_price = data.get('selling_price')
     products_number = data.get('products_number')
     promotional_product = data.get('promotional_product', False)
+
+    conflicting_product = fetch_store_product_by_id_product_and_promo(id_product, promotional_product)
+    if conflicting_product and conflicting_product['upc'] != upc:
+        return jsonify({'error': 'a store product with this id_product and type already exists'}), 400
 
     edit_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom)
 

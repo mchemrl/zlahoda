@@ -17,8 +17,8 @@ def fetch_store_product(upc):
             store_product = cur.fetchone()
 
             if store_product:
-                #if session.get('role') == 'Manager':
-                if True:
+                if session.get('role') == 'Manager':
+                #if True:
                     return {
                         "upc": store_product[0],
                         "upc_prom": store_product[1],
@@ -67,7 +67,7 @@ def fetch_store_products(promotional, category, sort, descending = False):
         base_query += " where " + " and ".join(conditions)
 
     valid_sort_fields = {
-        'prod  ucts_number': 'sp.products_number',
+        'products_number': 'sp.products_number',
         'product_name': 'p.product_name'}
 
     if sort in valid_sort_fields:
@@ -246,3 +246,18 @@ def save_store_product(UPC, id_product, selling_price, products_number, promotio
                     create_store_product(UPC, id_product, selling_price, products_number, promotional_product, upc_prom)
                 conn.commit()
         return UPC
+
+
+def fetch_store_product_by_id_product_and_promo(id_product, promotional_product):
+    from backend.db import get_connection
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                select upc
+                from store_product
+                where id_product = %s and promotional_product = %s
+            """, (id_product, promotional_product))
+            row = cur.fetchone()
+            if not row:
+                return None
+            return {'upc': row[0]}
