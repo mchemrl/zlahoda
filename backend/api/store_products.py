@@ -91,7 +91,7 @@ def delete_store_product():
     return jsonify({'message': 'store product deleted!'}), 200
 
 @store_product.route('/', methods=['PUT'])
-@manager_required
+#@manager_required
 def update_store_product():
     upc = request.args.get('upc', type=str)
     if not upc:

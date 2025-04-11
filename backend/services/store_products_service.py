@@ -67,7 +67,7 @@ def fetch_store_products(promotional, category, sort, descending = False):
         base_query += " where " + " and ".join(conditions)
 
     valid_sort_fields = {
-        'products_number': 'sp.products_number',
+        'prod  ucts_number': 'sp.products_number',
         'product_name': 'p.product_name'}
 
     if sort in valid_sort_fields:
@@ -112,19 +112,78 @@ def dump_store_product(upc):
             cur.execute(query, (upc,))
             conn.commit()
 
-def edit_store_product(upc, id_product,selling_price,products_number,promotional_product, upc_prom=None):
+
+def edit_store_product(upc, id_product, selling_price, new_products_number, promotional_product, upc_prom):
     with get_connection() as conn:
         with conn.cursor() as cur:
-            query = '''
-                   update store_product
-                   set UPC_prom = %s,
-                       id_product = %s,
-                       selling_price = %s,
-                       products_number = %s,
-                       promotional_product = %s
-                   where upc = %s
-               '''
-            cur.execute(query, (upc_prom, id_product, selling_price, products_number, promotional_product, upc))
+            cur.execute("""
+                select upc, products_number, promotional_product, upc_prom
+                from store_product
+                where upc = %s
+            """, (upc,))
+            product_record = cur.fetchone()
+            if not product_record:
+                raise ValueError("Product not found")
+            old_products_number = product_record[1]
+            old_promotional_flag = product_record[2]
+
+            if old_promotional_flag and not promotional_product:
+                if not upc_prom:
+                    raise ValueError(
+                        "to change from prom to non-prom you need upc_prom")
+                cur.execute("""
+                    select upc, products_number
+                    from store_product
+                    where upc = %s
+                """, (upc_prom,))
+                base_product = cur.fetchone()
+                if not base_product:
+                    raise ValueError("base product not found for merging")
+                base_upc, base_qty = base_product
+                merged_qty = base_qty + new_products_number
+                cur.execute("""
+                    update store_product
+                    set products_number = %s
+                    where upc = %s
+                """, (merged_qty, base_upc))
+                cur.execute("""
+                    delete from store_product
+                    where upc = %s
+                """, (upc,))
+
+            else:
+                if promotional_product:
+                    if not upc_prom:
+                        raise ValueError("enter upc_prom")
+                    cur.execute("""
+                        select upc, products_number
+                        from store_product
+                        where upc = %s
+                    """, (upc_prom,))
+                    base_product = cur.fetchone()
+                    if not base_product:
+                        raise ValueError("base product not found")
+                    base_upc, base_qty = base_product
+                    diff = new_products_number - old_products_number
+                    new_base_qty = base_qty - diff
+                    if new_base_qty < 0:
+                        raise ValueError(
+                            f"Not enough base product quantity. Available: {base_qty}, need to change to: {diff}")
+                    cur.execute("""
+                        update store_product
+                        set products_number = %s
+                        where upc = %s
+                    """, (new_base_qty, base_upc))
+
+                cur.execute("""
+                    update store_product
+                    set upc_prom = %s,
+                        id_product = %s,
+                        selling_price = %s,
+                        products_number = %s,
+                        promotional_product = %s
+                    where upc = %s
+                """, (upc_prom, id_product, selling_price, new_products_number, promotional_product, upc))
             conn.commit()
 
 
