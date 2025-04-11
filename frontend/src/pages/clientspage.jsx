@@ -74,7 +74,7 @@ export default function ClientsPage() {
       </header>
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
         <div className="w-full flex space-x-6">
-          {localStorage.getItem("role") === "cashier" ? (
+          {localStorage.getItem("role") === "Cashier" ? (
             <input
               type="text"
               placeholder="Search by client surname"

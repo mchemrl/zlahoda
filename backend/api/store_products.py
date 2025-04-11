@@ -57,6 +57,7 @@ def add_store_product():
     prod = fetch_store_product(UPC)
     if prod:
         print(f'is prod: {prod}')
+        
     gross = float(prod['selling_price'])
     net = round(gross / 1.2, 2)
     vat = round(gross - net, 2)

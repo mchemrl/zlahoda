@@ -16,7 +16,7 @@ export default function StoreProductsPage() {
   const [debouncedFilter, setDebouncedFilter] = useState(filter);
   const [newStoreProduct, setNewStoreProduct] = useState({
     upc: "",
-    id_product: "",
+    id: "",
     products_number: "",
     upc_prom: "",
     selling_price: "",
@@ -100,7 +100,7 @@ export default function StoreProductsPage() {
   };
 
   const handleDeleteStoreProduct = (upc) => {
-    fetch(`http://localhost:5000/store_product/${upc}`, {
+    fetch(`http://localhost:5000/api/store_products/?${upc}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -112,9 +112,9 @@ export default function StoreProductsPage() {
 
   const handleAddStoreProduct = () => {
     const payload = {
-      id_product: parseInt(newStoreProduct.id_product),
+      id_product: parseInt(newStoreProduct.id),
       UPC: newStoreProduct.upc.trim(),
-      UPC_prom: newStoreProduct.upc_prom?.trim() || null,
+      UPC_prom: newStoreProduct.upc_prom?.trim() || "",
       selling_price: parseFloat(newStoreProduct.selling_price),
       products_number: parseInt(newStoreProduct.products_number),
       promotional_product: Boolean(newStoreProduct.promotional_product),
@@ -131,7 +131,7 @@ export default function StoreProductsPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/store_product/", {
+    fetch("http://localhost:5000/api/store_products/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -148,7 +148,7 @@ export default function StoreProductsPage() {
         fetchStoreProducts();
         setNewStoreProduct({
           upc: "",
-          id_product: products[0]?.id_product || "",
+          id: products[0]?.id || "",
           products_number: "",
           upc_prom: "",
           selling_price: "",
@@ -159,8 +159,8 @@ export default function StoreProductsPage() {
   };
 
   return (
-    <div className='w-screen h-screen bg-[#fff3ea] font-["Kumbh_Sans"] text-lg font-normal flex flex-col relative'>
-      <header className="w-screen h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
+    <div className='w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-["Kumbh_Sans"] text-lg font-normal flex flex-col relative'>
+      <header className="w-screen min-w-[1000px] h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
         <div className="text-orange-50 text-3xl flex items-center">
           Zlahoda
           <img
@@ -214,9 +214,9 @@ export default function StoreProductsPage() {
             className="flex-1 border border-[#f57b20] rounded-md pl-3 py-2 bg-[#fff3ea] text-[#f57b20]"
           >
             <option>All categories</option>
-            {categories.map((cat) => (
-              <option className="w-full" key={cat.id} value={cat.id}>
-                {cat.category_name}
+            {categories.map((product) => (
+              <option className="w-full" key={product.id} value={product.id}>
+                {product.category_name}
               </option>
             ))}
           </select>
@@ -273,7 +273,9 @@ export default function StoreProductsPage() {
                     onDoubleClick={() => handleDeleteStoreProduct(product.upc)}
                   >
                     <td className="px-4 py-2">{product.product_name}</td>
-                    <td className="px-4 py-2">{product.upc}</td>
+                    <td className="px-4 py-2">
+                      {product.promotional ? product.upc_prom : product.upc}
+                    </td>
                     <td className="px-4 py-2">{product.selling_price}</td>
                     <td className="px-4 py-2">{product.products_number}</td>
                     <td className="px-4 py-2">
@@ -290,7 +292,7 @@ export default function StoreProductsPage() {
             setAddStoreProductModalOpen(true);
             setNewStoreProduct({
               ...newStoreProduct,
-              id_product: products.length,
+              id: products.length,
               category_number: categories[0].id,
             });
           }}
@@ -300,7 +302,9 @@ export default function StoreProductsPage() {
         </button>
       </main>
       {addStoreProductModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+        <div
+          className={`fixed inset-0 flex items-center justify-center backdrop-blur-sm transition-all duration-200 opacity-100`}
+        >
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
               onClick={() => setAddStoreProductModalOpen(false)}
@@ -317,6 +321,7 @@ export default function StoreProductsPage() {
                   setNewStoreProduct({
                     ...newStoreProduct,
                     promotional_product: e.target.checked,
+                    upc_prom: "",
                   })
                 }
                 className="cursor-pointer appearance-none w-5 h-5 border-2 border-[#f57b20] rounded-sm checked:bg-[#f57b20] checked:border-transparent transition-all duration-200 align-middle"
@@ -335,19 +340,39 @@ export default function StoreProductsPage() {
               placeholder="UPC"
               className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
             />
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                newStoreProduct.promotional_product
+                  ? "max-h-40 opacity-100"
+                  : "max-h-0 opacity-0"
+              }`}
+            >
+              <input
+                type="text"
+                value={newStoreProduct.upc_prom}
+                onChange={(e) =>
+                  setNewStoreProduct({
+                    ...newStoreProduct,
+                    upc_prom: e.target.value,
+                  })
+                }
+                placeholder="UPC (promotional)"
+                className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+              />
+            </div>
             <select
-              value={newStoreProduct.id_product}
+              value={newStoreProduct.id}
               onChange={(e) =>
                 setNewStoreProduct({
                   ...newStoreProduct,
-                  id_product: e.target.value,
+                  id: e.target.value,
                 })
               }
               className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
             >
-              {products.map((cat) => (
-                <option key={cat.id_product} value={cat.id_product}>
-                  {cat.product_name}
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.product_name}
                 </option>
               ))}
             </select>

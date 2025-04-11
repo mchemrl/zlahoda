@@ -18,6 +18,24 @@ export default function UserProfile() {
       });
   }, []);
 
+  const handleLogOut = () => {
+    fetch("http://localhost:5000/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (response.ok) {
+          localStorage.clear();
+          navigate("/");
+        } else {
+          console.error("Logout failed.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error logging out:", error);
+      });
+  };
+
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col">
       <header className="w-full h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
@@ -66,11 +84,11 @@ export default function UserProfile() {
           </div>
 
           <div className="flex space-x-4 mt-4">
-            <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700 cursor-pointer">
+            <button
+              className="bg-red-500 flex-grow text-white px-4 py-2 rounded-lg hover:bg-red-700 cursor-pointer"
+              onClick={handleLogOut}
+            >
               Log out
-            </button>
-            <button className="bg-[#f57b20] text-white px-4 py-2 rounded-lg hover:bg-[#db6c1c] cursor-pointer">
-              Change password
             </button>
           </div>
         </div>
