@@ -28,7 +28,7 @@ def get_store_products():
         return jsonify(products)
 
 @store_product.route('/', methods=('POST',))
-#@manager_required
+@manager_required
 def add_store_product():
     data = request.json
     id_product = data.get('id_product')
