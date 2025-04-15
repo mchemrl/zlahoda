@@ -6,6 +6,7 @@ from .products import products
 from .store_products import store_product
 from .client import client
 
+
 api = Blueprint('api', __name__, url_prefix='/api')
 
 api.register_blueprint(auth, url_prefix='/auth')
