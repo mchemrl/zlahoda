@@ -8,6 +8,7 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("All categories");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [newProduct, setNewProduct] = useState({
     product_name: "",
@@ -29,7 +30,7 @@ export default function ProductsPage() {
     setSelectedProduct({
       ...product,
       category_number: categories.find(
-        (cat) => cat.category_name == product.category_name
+        (cat) => cat.category_name === product.category_name
       ).id,
     });
   };
@@ -201,6 +202,12 @@ export default function ProductsPage() {
           >
             Filter
           </button>
+          <button
+            onClick={() => setReportModalOpen(true)}
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          >
+            Make Report
+          </button>
         </div>
 
         <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
@@ -251,6 +258,27 @@ export default function ProductsPage() {
           </button>
         )}
       </main>
+
+      {/* Report Modal */}
+      {reportModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
+          <div className="bg-white rounded-2xl shadow-lg p-4 w-4/5 h-4/5 relative">
+            <button
+              onClick={() => setReportModalOpen(false)}
+              className="absolute top-4 right-4 text-red-500 text-2xl"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl mb-4">Products Report Preview</h2>
+            <iframe
+                src="http://localhost:5000/api/products/report/preview"
+              title="Products Report Preview"
+              className="w-full h-full"
+              frameBorder="0"
+            ></iframe>
+          </div>
+        </div>
+      )}
 
       {selectedProduct && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">

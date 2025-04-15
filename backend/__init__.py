@@ -21,7 +21,5 @@ def create_app():
     app.config['SESSION_COOKIE_PATH'] = '/'
 
     from backend.api import api
-    from backend.reports import reports
     app.register_blueprint(api)
-    app.register_blueprint(reports)
     return app
