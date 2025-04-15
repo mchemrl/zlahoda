@@ -1,6 +1,6 @@
 from flask import Blueprint
-from products_report import products
+from products_report import product_report
 
 reports = Blueprint('reports', __name__, url_prefix='/reports')
 
-reports.register_blueprint(products, url_prefix='/reports_products')
+reports.register_blueprint(product_report, url_prefix='/reports_products')
