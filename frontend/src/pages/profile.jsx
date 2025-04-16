@@ -7,11 +7,15 @@ export default function UserProfile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/login", {
+    fetch("http://localhost:5000/api/employees/me", {
+      method: "GET",
       credentials: "include",
     })
       .then((response) => response.json())
-      .then((data) => setUser(data))
+      .then((data) => {
+        setUser(data);
+        console.log(data);
+      })
       .catch((error) => {
         console.error("Error fetching user:", error);
         setError(error.message);
@@ -49,7 +53,9 @@ export default function UserProfile() {
         </div>
         <nav className="flex space-x-6 text-orange-50 text-lg">
           <ul className="flex space-x-6">
-            <li className="cursor-pointer hover:underline">Client</li>
+            <li className="cursor-pointer hover:underline">
+              <Link to="/clients">Client</Link>
+            </li>
             <li className="cursor-pointer hover:underline">
               <Link to="/products">Products</Link>
             </li>
@@ -72,26 +78,39 @@ export default function UserProfile() {
             className="w-105 h-105"
           />
         </div>
-        <div className="bg-[#fff3ea] flex flex-col items-center text-left space-y-4 w-full max-w-md">
-          <h1 className="text-3xl font-bold text-[#f57b20]">Victoria Dyrda</h1>
-          <p className="text-lg text-[#f57b20]">Manager</p>
-          <div className="bg-[#f57b20] p-6 rounded-lg shadow-md text-white w-full shadow-lg">
-            <h2 className="font-bold text-lg mb-2">Personal info:</h2>
-            <p>Birthdate: 14.01.2006</p>
-            <p>Phone number: +380 98 930 41 20</p>
-            <p>Home address: Kyiv, Oleksandry Ekster</p>
-            <p>Card number: 3940258</p>
-          </div>
+        {user && (
+          <div className="bg-[#fff3ea] flex flex-col items-center text-left space-y-4 w-full max-w-md">
+            <h1 className="text-3xl font-bold text-[#f57b20]">
+              {user?.empl_surname} {user?.empl_patronymic} {user?.empl_name}
+            </h1>
+            <p className="text-lg text-[#f57b20]">{user?.empl_role}</p>
+            <div className="bg-[#f57b20] p-6 rounded-lg shadow-md text-white w-full shadow-lg">
+              <h2 className="font-bold text-lg mb-2">Personal info:</h2>
+              <p>
+                Birthdate: {new Date(user?.date_of_birth).toLocaleDateString()}
+              </p>
+              <p>Phone number: {user?.phone_number}</p>
+              <p>
+                Home address: {user?.city}, {user?.street}, {user?.zip_code}
+              </p>
+              <p>Card number: {user?.id_employee}</p>
+              <p>Salary: ₴{parseFloat(user?.salary).toLocaleString()}</p>
+              <p>
+                Employment start date:{" "}
+                {new Date(user?.date_of_start).toLocaleDateString()}
+              </p>
+            </div>
 
-          <div className="flex space-x-4 mt-4">
-            <button
-              className="bg-red-500 flex-grow text-white px-4 py-2 rounded-lg hover:bg-red-700 cursor-pointer"
-              onClick={handleLogOut}
-            >
-              Log out
-            </button>
+            <div className="flex space-x-4 mt-4">
+              <button
+                className="bg-red-500 flex-grow text-white px-4 py-2 rounded-lg hover:bg-red-700 cursor-pointer"
+                onClick={handleLogOut}
+              >
+                Log out
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

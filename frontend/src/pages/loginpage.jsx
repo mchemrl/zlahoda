@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
@@ -6,6 +6,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem("role") !== null) navigate("/profile");
+  });
 
   const handleLogin = async () => {
     try {

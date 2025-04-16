@@ -13,7 +13,6 @@ export default function StoreProductsPage() {
   const [addStoreProductModalOpen, setAddStoreProductModalOpen] =
     useState(false);
   const [products, setProducts] = useState([]);
-  const [debouncedFilter, setDebouncedFilter] = useState(filter);
   const [newStoreProduct, setNewStoreProduct] = useState({
     upc: "",
     id: "",
@@ -22,16 +21,6 @@ export default function StoreProductsPage() {
     selling_price: "",
     promotional_product: "",
   });
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedFilter(filter);
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [filter]);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/categories", {
@@ -95,19 +84,74 @@ export default function StoreProductsPage() {
   };
 
   const handleFilter = () => {
-    setDebouncedFilter(filter);
     fetchStoreProducts();
   };
 
-  const handleDeleteStoreProduct = (upc) => {
-    fetch(`http://localhost:5000/api/store_products/?${upc}`, {
-      method: "DELETE",
-      credentials: "include",
-    })
+  const openEditModal = (product) => {
+    console.log(product);
+    setSelectedStoreProduct({
+      ...product,
+      safe_price: product.selling_price,
+    });
+  };
+
+  const closeEditModal = () => {
+    setSelectedStoreProduct(null);
+  };
+
+  const handleDeleteStoreProduct = () => {
+    console.log(selectedStoreProduct);
+    fetch(
+      `http://localhost:5000/api/store_products/?upc=${selectedStoreProduct.upc}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    )
       .then(() => {
-        setStoreProducts((prev) => prev.filter((p) => p.upc !== upc));
+        setStoreProducts((prev) =>
+          prev.filter((p) => p.upc !== selectedStoreProduct.upc)
+        );
       })
       .catch((error) => console.error("Error deleting store product:", error));
+    setSelectedStoreProduct(null);
+  };
+  const handleSaveChanges = () => {
+    if (!selectedStoreProduct) return;
+    if (!selectedStoreProduct.promotional_product) {
+      fetch(
+        `http://localhost:5000/api/store_products/?upc=${SelectedStoreProduct.upc}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(selectedStoreProduct),
+          credentials: "include",
+        }
+      )
+        .then((response) => response.json())
+        .then((updatedProduct) => {
+          const fullProduct = {
+            ...updatedProduct,
+          };
+
+          setProducts((prevProducts) =>
+            prevProducts.map((p) =>
+              p.upc === fullProduct.upc ? fullProduct : p
+            )
+          );
+          closeEditModal();
+        })
+        .catch((error) => console.error("Error updating product:", error));
+    } else {
+      setNewStoreProduct({
+        ...selectedStoreProduct,
+        id: selectedStoreProduct.id_product,
+        selling_price: selectedStoreProduct.safe_price,
+      });
+      console.log(newStoreProduct);
+      handleAddStoreProduct();
+      closeEditModal();
+    }
   };
 
   const handleAddStoreProduct = () => {
@@ -270,7 +314,7 @@ export default function StoreProductsPage() {
                   <tr
                     key={product.upc}
                     className="border-b border-[#fff3ea] hover:bg-[#db6c1c] cursor-pointer text-center"
-                    onDoubleClick={() => handleDeleteStoreProduct(product.upc)}
+                    onDoubleClick={() => openEditModal(product)}
                   >
                     <td className="px-4 py-2">{product.product_name}</td>
                     <td className="px-4 py-2">
@@ -301,99 +345,146 @@ export default function StoreProductsPage() {
           Add new store product
         </button>
       </main>
-      {addStoreProductModalOpen && (
-        <div
-          className={`fixed inset-0 flex items-center justify-center backdrop-blur-sm transition-all duration-200 opacity-100`}
-        >
+      {addStoreProductModalOpen &&
+        localStorage.getItem("role") === "Manager" && (
+          <div
+            className={`fixed inset-0 flex items-center justify-center backdrop-blur-sm transition-all duration-200 opacity-100`}
+          >
+            <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
+              <button
+                onClick={() => setAddStoreProductModalOpen(false)}
+                className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+              >
+                ✕
+              </button>
+              <h2 className="text-2xl mb-4 text-[#f57b20]">
+                Add Store Product
+              </h2>
+              <input
+                type="text"
+                value={newStoreProduct.upc}
+                onChange={(e) =>
+                  setNewStoreProduct({
+                    ...newStoreProduct,
+                    upc: e.target.value,
+                  })
+                }
+                placeholder="UPC"
+                className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+              />
+              <select
+                value={newStoreProduct.id}
+                onChange={(e) =>
+                  setNewStoreProduct({
+                    ...newStoreProduct,
+                    id: e.target.value,
+                  })
+                }
+                className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+              >
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.product_name}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={newStoreProduct.selling_price}
+                onChange={(e) =>
+                  setNewStoreProduct({
+                    ...newStoreProduct,
+                    selling_price: e.target.value,
+                  })
+                }
+                placeholder="Price"
+                className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+              />
+              <input
+                type="text"
+                value={newStoreProduct.products_number}
+                onChange={(e) =>
+                  setNewStoreProduct({
+                    ...newStoreProduct,
+                    products_number: e.target.value,
+                  })
+                }
+                placeholder="Quantity"
+                className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+              />
+
+              <button
+                onClick={handleAddStoreProduct}
+                className="bg-[#f57b20] text-white px-4 py-2 rounded cursor-pointer hover:bg-[#db6c1c] w-full"
+              >
+                Add Store Product
+              </button>
+            </div>
+          </div>
+        )}
+      {selectedStoreProduct && localStorage.getItem("role") === "Manager" && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
-              onClick={() => setAddStoreProductModalOpen(false)}
               className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+              onClick={closeEditModal}
             >
               ✕
             </button>
-            <h2 className="text-2xl mb-4 text-[#f57b20]">Add Store Product</h2>
+
+            <h2 className="text-2xl mb-4 text-[#f57b20]">Edit Store Product</h2>
+
             <label className="flex items-center space-x-2 mb-4 text-[#f57b20] cursor-pointer">
               <input
                 type="checkbox"
-                checked={newStoreProduct.promotional_product}
+                checked={selectedStoreProduct.promotional_product}
                 onChange={(e) =>
-                  setNewStoreProduct({
-                    ...newStoreProduct,
+                  setSelectedStoreProduct((prev) => ({
+                    ...prev,
                     promotional_product: e.target.checked,
                     upc_prom: "",
-                  })
+                    selling_price: e.target.checked ? "" : prev.selling_price,
+                  }))
                 }
                 className="cursor-pointer appearance-none w-5 h-5 border-2 border-[#f57b20] rounded-sm checked:bg-[#f57b20] checked:border-transparent transition-all duration-200 align-middle"
               />
-              <span className="leading-none">Promotional</span>
+              <span className="leading-none">Make promotional</span>
             </label>
-            <input
-              type="text"
-              value={newStoreProduct.upc}
-              onChange={(e) =>
-                setNewStoreProduct({
-                  ...newStoreProduct,
-                  upc: e.target.value,
-                })
-              }
-              placeholder="UPC"
-              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
-            />
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                newStoreProduct.promotional_product
-                  ? "max-h-40 opacity-100"
-                  : "max-h-0 opacity-0"
-              }`}
-            >
+
+            {selectedStoreProduct.promotional_product ? (
               <input
                 type="text"
-                value={newStoreProduct.upc_prom}
+                value={selectedStoreProduct.upc_prom}
                 onChange={(e) =>
-                  setNewStoreProduct({
-                    ...newStoreProduct,
+                  setSelectedStoreProduct({
+                    ...selectedStoreProduct,
                     upc_prom: e.target.value,
                   })
                 }
-                placeholder="UPC (promotional)"
+                placeholder="UPC_prom"
                 className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
               />
-            </div>
-            <select
-              value={newStoreProduct.id}
-              onChange={(e) =>
-                setNewStoreProduct({
-                  ...newStoreProduct,
-                  id: e.target.value,
-                })
-              }
-              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
-            >
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.product_name}
-                </option>
-              ))}
-            </select>
+            ) : (
+              <input
+                type="text"
+                value={selectedStoreProduct.selling_price}
+                onChange={(e) =>
+                  setSelectedStoreProduct({
+                    ...selectedStoreProduct,
+                    selling_price: e.target.value,
+                  })
+                }
+                placeholder="Price"
+                className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
+              />
+            )}
+
             <input
               type="text"
-              value={newStoreProduct.selling_price}
+              value={selectedStoreProduct.products_number}
               onChange={(e) =>
-                setNewStoreProduct({
-                  ...newStoreProduct,
-                  selling_price: e.target.value,
-                })
-              }
-              placeholder="Price"
-              className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
-            />
-            <input
-              type="text"
-              value={newStoreProduct.products_number}
-              onChange={(e) =>
-                setNewStoreProduct({
-                  ...newStoreProduct,
+                setSelectedStoreProduct({
+                  ...selectedStoreProduct,
                   products_number: e.target.value,
                 })
               }
@@ -401,12 +492,20 @@ export default function StoreProductsPage() {
               className="w-full border p-2 mb-4 rounded border-[#f57b20] text-[#f57b20]"
             />
 
-            <button
-              onClick={handleAddStoreProduct}
-              className="bg-[#f57b20] text-white px-4 py-2 rounded cursor-pointer hover:bg-[#db6c1c] w-full"
-            >
-              Add Store Product
-            </button>
+            <div className="flex justify-between">
+              <button
+                onClick={handleDeleteStoreProduct}
+                className="bg-red-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-red-700"
+              >
+                Delete
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                className="bg-[#f57b20] text-white px-4 py-2 rounded cursor-pointer hover:bg-[#db6c1c]"
+              >
+                Update
+              </button>
+            </div>
           </div>
         </div>
       )}
