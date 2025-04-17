@@ -64,8 +64,8 @@ def fetch_employee_by_id(employee_id):
 
             return {
                 "id_employee": employee[0],
-                "empl_name": employee[1],
-                "empl_surname": employee[2],
+                "empl_surname": employee[1],
+                "empl_name": employee[2],
                 "empl_patronymic": employee[3],
                 "empl_role": employee[4],
                 "salary": employee[5],
