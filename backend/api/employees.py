@@ -64,13 +64,13 @@ def add_employee():
     if fetch_employee_by_id(employee[0]) is not None:
         return jsonify({"error": "employee already exists"}), 400
 
-    create_employee(tuple(employee))
+    create_employee(employee)
 
-    return jsonify({"message": "Employee created successfully"}), 201
+    return jsonify({"message": "employee created successfully"}), 201
 
 
 @employees.route('/', methods=('PUT',))
-def update():
+def update_employee():
     employee_id = request.args.get('employee_id', type=str)
     if not employee_id:
         return jsonify({"error": "employee ID is required"}), 400
@@ -81,11 +81,11 @@ def update():
     employee = validate_employee(request.get_json(), employee_id)
 
     edit_employee(employee)
-    return jsonify({"message": "Employee updated successfully"}), 200
+    return jsonify({"message": "employee updated successfully"}), 200
 
 
 @employees.route('/', methods=('DELETE',))
-def delete():
+def delete_employee():
     employee_id = request.args.get('employee_id', type=str)
     if not employee_id:
         return jsonify({"error": "employee ID is required"}), 400
