@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Client Report</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Client Report</h1>
+  <a href="{{ url_for('api.client_report.export_pdf') }}">
+    <button type="button">Export as PDF</button>
+  </a>
+  <table>
+    <thead>
+      <tr>
+        <th>Card Number</th>
+        <th>Surname</th>
+          <th>Name</th>
+          <th>Patronymic</th>
+          <th>Phone</th>
+          <th>City</th>
+          <th>Street</th>
+          <th>Zip Code</th>
+          <th>Percent</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for client in clients %}
+      <tr>
+        <td>{{ client.card_number }}</td>
+        <td>{{ client.cust_surname }}</td>
+          <td>{{ client.cust_name }}</td>
+          <td>{{ client.cust_patronymic }}</td>
+          <td>{{ client.phone_number }}</td>
+          <td>{{ client.city }}</td>
+          <td>{{ client.street }}</td>
+          <td>{{ client.zip_code }}</td>
+          <td>{{ client.percent }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+</body>
+</html>

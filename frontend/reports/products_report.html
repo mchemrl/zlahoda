@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Products Report</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Products Report</h1>
+  <a href="{{ url_for('api.products_report.export_pdf') }}">
+    <button type="button">Export as PDF</button>
+  </a>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Product Name</th>
+        <th>Category Name</th>
+        <th>Characteristics</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.id }}</td>
+        <td>{{ product.product_name }}</td>
+        <td>{{ product.category_name }}</td>
+        <td>{{ product.characteristics }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+</body>
+</html>

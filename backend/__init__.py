@@ -22,5 +22,4 @@ def create_app():
 
     from backend.api import api
     app.register_blueprint(api)
-
     return app

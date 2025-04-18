@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Receipt Report</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Receipt Report</h1>
+  <a href="{{ url_for('api.receipt_report.export_pdf') }}">
+    <button type="button">Export as PDF</button>
+  </a>
+  <table>
+    <thead>
+      <tr>
+        <th>Receipt Number</th>
+        <th>Employee</th>
+          <th>Card Number</th>
+          <th>Print Date</th>
+          <th>Total</th>
+          <th>Vat</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for receipt in receipts %}
+      <tr>
+        <td>{{ receipt.receipt_number }}</td>
+        <td>{{ receipt.employee }}</td>
+          <td>{{ receipt.card_number }}</td>
+        <td>{{ receipt.print_date }}</td>
+        <td>{{ receipt.sum_total }}</td>
+        <td>{{ receipt.vat }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+</body>
+</html>
