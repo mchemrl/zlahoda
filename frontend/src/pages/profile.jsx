@@ -41,8 +41,8 @@ export default function UserProfile() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col">
-      <header className="w-full h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
+    <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col items-center">
+      <header className="w-full h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6 max-h-[83.9px]">
         <div className="text-orange-50 text-3xl flex items-center">
           Zlahoda
           <img
@@ -69,16 +69,16 @@ export default function UserProfile() {
           </ul>
         </nav>
       </header>
+      {user !== null ? (
+        <main className="flex-grow flex flex-row items-center justify-center w-full h-screen overflow-hidden px-8 py-8">
+          <div>
+            <img
+              src="static/bumbastik/bumbastik_scary.gif"
+              alt="Loading GIF"
+              className="w-105 h-105"
+            />
+          </div>
 
-      <main className="flex-grow flex flex-row items-center justify-center w-full h-screen overflow-hidden px-8 py-8">
-        <div>
-          <img
-            src="static/bumbastik/bumbastik_scary.gif"
-            alt="Loading GIF"
-            className="w-105 h-105"
-          />
-        </div>
-        {user && (
           <div className="bg-[#fff3ea] flex flex-col items-center text-left space-y-4 w-full max-w-md">
             <h1 className="text-3xl font-bold text-[#f57b20]">
               {user?.empl_surname} {user?.empl_patronymic} {user?.empl_name}
@@ -110,8 +110,10 @@ export default function UserProfile() {
               </button>
             </div>
           </div>
-        )}
-      </main>
+        </main>
+      ) : (
+        <img src="static/loading.gif" className="mt-45 w-50 h-50" />
+      )}
     </div>
   );
 }

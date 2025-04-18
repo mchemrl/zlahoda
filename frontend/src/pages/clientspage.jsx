@@ -7,9 +7,13 @@ export default function ClientsPage() {
   const [percentage, setPercentage] = useState("");
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [addClientModalOpen, setAddClientModalOpen] = useState(false);
+  const [newClient, setNewClient] = useState({});
 
   useEffect(() => {
     handleFilter();
+    console.log(selectedClient);
   }, []);
 
   const fetchClients = (params = {}) => {
@@ -34,6 +38,12 @@ export default function ClientsPage() {
       })
       .catch((error) => console.error("Error fetching clients:", error));
   };
+  const openEditModal = (client) => {
+    setSelectedClient(client);
+  };
+  const closeEditModal = () => {
+    setSelectedClient(null);
+  };
 
   const handleFilter = () => {
     fetchClients({
@@ -41,6 +51,21 @@ export default function ClientsPage() {
       percentage: percentage,
       descending: sortOrder === "Descending" ? "True" : undefined,
     });
+  };
+  const handleDeleteClient = () => {
+    if (!selectedClient) return;
+    fetch(
+      `http://localhost:5000/api/client/?card_number=${selectedClient.card_number}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    )
+      .then(() => {
+        handleFilter();
+        closeEditModal();
+      })
+      .catch((error) => console.error("Error deleting product:", error));
   };
 
   return (
@@ -119,14 +144,18 @@ export default function ClientsPage() {
                 <th className="px-4 py-2">Card Number</th>
                 <th className="px-4 py-2">Surname</th>
                 <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">Patronymic</th>
                 <th className="px-4 py-2">Phone</th>
+                <th className="px-4 py-2">City</th>
+                <th className="px-4 py-2">Street</th>
+                <th className="px-4 py-2">ZIP</th>
                 <th className="px-4 py-2">Percent</th>
               </tr>
             </thead>
             <tbody>
-              {clients.length === 0 || clients[0].card_number == null ? (
+              {clients.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-4 text-[#fff3ea]">
+                  <td colSpan="9" className="text-center py-4 text-[#fff3ea]">
                     -
                   </td>
                 </tr>
@@ -135,14 +164,18 @@ export default function ClientsPage() {
                   <tr
                     key={client.card_number}
                     className="border-b border-[#fff3ea] hover:bg-[#db6c1c] cursor-pointer text-center"
-                    onDoubleClick={() => {
-                      console.log("Double-clicked client:", client.card_number);
-                    }}
+                    onDoubleClick={() => openEditModal(client)}
                   >
                     <td className="px-4 py-2">{client.card_number}</td>
                     <td className="px-4 py-2">{client.cust_surname}</td>
                     <td className="px-4 py-2">{client.cust_name}</td>
+                    <td className="px-4 py-2">
+                      {client.cust_patronymic || "-"}
+                    </td>
                     <td className="px-4 py-2">{client.phone_number}</td>
+                    <td className="px-4 py-2">{client.city}</td>
+                    <td className="px-4 py-2">{client.street}</td>
+                    <td className="px-4 py-2">{client.zip_code}</td>
                     <td className="px-4 py-2">{client.percent}%</td>
                   </tr>
                 ))
@@ -150,7 +183,184 @@ export default function ClientsPage() {
             </tbody>
           </table>
         </div>
+        {localStorage.getItem("role") === "Manager" && (
+          <button
+            onClick={() => {
+              setAddClientModalOpen(true);
+              setNewClient({});
+            }}
+            className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          >
+            Add new client
+          </button>
+        )}
       </main>
+      {selectedClient && localStorage.getItem("role") === "Manager" && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-[400px]  max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={closeEditModal}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl mb-4 text-[#f57b20]">Edit Client</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                fetch(
+                  `http://localhost:5000/api/client/?card_number=${selectedClient.card_number}`,
+                  {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(selectedClient),
+                  }
+                )
+                  .then((res) => res.json())
+                  .then(() => {
+                    closeEditModal();
+                    fetchClients();
+                  })
+                  .catch((err) => console.error("Error updating client:", err));
+              }}
+              className="space-y-3"
+            >
+              {[
+                "card_number",
+                "cust_surname",
+                "cust_name",
+                "cust_patronymic",
+                "phone_number",
+                "city",
+                "street",
+                "zip_code",
+                "percent",
+              ].map((field) => (
+                <div key={field} className="flex flex-col">
+                  <label className="text-sm text-[#f57b20] capitalize">
+                    {field.replace(/_/g, " ")}
+                  </label>
+                  <input
+                    type={field === "percent" ? "number" : "text"}
+                    value={selectedClient[field] ?? ""}
+                    onChange={(e) =>
+                      setSelectedClient({
+                        ...selectedClient,
+                        [field]:
+                          field === "percent"
+                            ? Number(e.target.value)
+                            : e.target.value,
+                      })
+                    }
+                    className="border border-[#f57b20] rounded-md px-3 py-1 bg-white text-[#333]"
+                    required={[
+                      "card_number",
+                      "cust_name",
+                      "cust_surname",
+                      "phone_number",
+                      "percent",
+                    ].includes(field)}
+                  />
+                </div>
+              ))}
+              <div className="flex justify-between">
+                <button
+                  onClick={handleDeleteClient}
+                  className="bg-red-500 text-white mt-2 px-4 py-2 rounded cursor-pointer hover:bg-red-700"
+                >
+                  Delete
+                </button>
+                <button
+                  type="submit"
+                  className="border bg-[#f57b20] rounded-md mt-2 px-4 py-2 cursor-pointer hover:bg-[#db6c1c] text-white"
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {addClientModalOpen && localStorage.getItem("role") === "Manager" && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-[400px] max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => setAddClientModalOpen(false)}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl mb-4 text-[#f57b20]">Add New Client</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                fetch(`http://localhost:5000/api/client/`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(newClient),
+                })
+                  .then((res) => res.json())
+                  .then(() => {
+                    setAddClientModalOpen(false);
+                    fetchClients();
+                  })
+                  .catch((err) => console.error("Error adding client:", err));
+              }}
+              className="space-y-3"
+            >
+              {[
+                "card_number",
+                "cust_surname",
+                "cust_name",
+                "cust_patronymic",
+                "phone_number",
+                "city",
+                "street",
+                "zip_code",
+                "percent",
+              ].map((field) => (
+                <div key={field} className="flex flex-col">
+                  <label className="text-sm text-[#f57b20] capitalize">
+                    {field.replace(/_/g, " ")}
+                  </label>
+                  <input
+                    type={field === "percent" ? "number" : "text"}
+                    value={newClient[field] ?? ""}
+                    onChange={(e) =>
+                      setNewClient({
+                        ...newClient,
+                        [field]:
+                          field === "percent"
+                            ? Number(e.target.value)
+                            : e.target.value,
+                      })
+                    }
+                    className="border border-[#f57b20] rounded-md px-3 py-1 bg-white text-[#333]"
+                    required={[
+                      "card_number",
+                      "cust_name",
+                      "cust_surname",
+                      "phone_number",
+                      "percent",
+                    ].includes(field)}
+                  />
+                </div>
+              ))}
+
+              <button
+                type="submit"
+                className=" border bg-[#f57b20] text-white mt-2 px-4 py-2 rounded cursor-pointer hover:bg-[#db6c1c]"
+              >
+                Add New Client
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
