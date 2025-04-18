@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Category Report</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Category Report</h1>
+  <a href="{{ url_for('api.category_report.export_pdf') }}">
+    <button type="button">Export as PDF</button>
+  </a>
+  <table>
+    <thead>
+      <tr>
+        <th>Category Number</th>
+        <th>Category Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for category in categories %}
+      <tr>
+        <td>{{ category.category_number }}</td>
+        <td>{{ category.category_name }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+</body>
+</html>
