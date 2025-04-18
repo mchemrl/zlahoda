@@ -20,6 +20,9 @@
 </head>
 <body>
   <h1>Products Report</h1>
+  <a href="{{ url_for('api.products_report.export_pdf') }}">
+    <button type="button">Export as PDF</button>
+  </a>
   <table>
     <thead>
       <tr>
@@ -41,8 +44,5 @@
     </tbody>
   </table>
   <br>
-<a href="{{ url_for('api.product_reports.export_products_pdf') }}">
-    <button type="button">Export as PDF</button>
-  </a>
 </body>
 </html>
