@@ -9,6 +9,7 @@ export default function StoreProductsPage() {
   const [sortBy, setSortBy] = useState("product_name");
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [categories, setCategories] = useState([]);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [promotional, setPromotional] = useState("all");
   const [addStoreProductModalOpen, setAddStoreProductModalOpen] =
     useState(false);
@@ -187,7 +188,25 @@ export default function StoreProductsPage() {
           </ul>
         </nav>
       </header>
-
+ {/* Report Modal */}
+      {reportModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
+            <button
+              onClick={() => setReportModalOpen(false)}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl mb-4">Products Report Preview</h2>
+            <iframe
+              src="http://localhost:5000/api/products/report/preview"
+              title="Products Report Preview"
+              className="w-full h-3/4"
+            ></iframe>
+          </div>
+        </div>
+      )}
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
         <div className="w-full flex space-x-6 mb-4">
           <input
