@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from flask import Blueprint, request, jsonify
 
 from backend.services.client_service import fetch_client
@@ -22,9 +24,13 @@ def get_receipts():
     end_date = request.args.get('end_date')
     if cashier_id is not None:
         if start_date is not None and end_date is not None:
-            receipts_res = fetch_receipts(start_date=start_date, end_date=end_date)
+            receipts_res = fetch_receipts(cashier_id, start_date, end_date)
         else:
             receipts_res = fetch_receipts(cashier_id=cashier_id)
+        return jsonify(receipts_res), 200
+
+    if start_date is not None and end_date is not None:
+        receipts_res = fetch_receipts(start_date=start_date, end_date=end_date)
         return jsonify(receipts_res), 200
 
     receipts_res = fetch_receipts()
@@ -38,14 +44,22 @@ def add_receipt_sales():
     if isinstance(receipt, tuple):
         return receipt  # error response from validate_receipt
 
-    if receipt.get('card_number') is not None and fetch_client(receipt.get('card_number')) is None:
-        return jsonify({"error": "client not found"}), 404
+    if receipt.get('card_number') is not None:
+        client = fetch_client(receipt.get('card_number'))
+        if client is None:
+            return jsonify({"error": "client not found"}), 404
+        else:
+            discount_percent = Decimal(client.get('percent'))
+            receipt['sum_total'] = receipt['sum_total'] * (Decimal('1') - discount_percent / Decimal('100'))
 
     if fetch_employee_by_id(receipt.get('id_employee')) is None:
         return jsonify({"error": "employee not found"}), 404
 
     create_receipt(receipt)
-    return jsonify({"message": "receipt created successfully"}), 201
+    return jsonify({
+        "message": "receipt created successfully",
+        "receipt_number": receipt.get('receipt_number')
+    }), 201
 
 
 @receipts.route('/', methods=('DELETE',))

@@ -1,10 +1,10 @@
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from flask import jsonify
-from datetime import datetime
+from psycopg2.extras import RealDictCursor
 
 from backend.db import get_connection
-from backend.services.store_products_service import fetch_store_product
 
 
 def validate_receipt(data):
@@ -16,6 +16,9 @@ def validate_receipt(data):
 
     if not all([receipt_number, id_employee, print_date, products_list]):
         return jsonify({'error': 'missing required fields'}), 400
+
+    if fetch_receipt_by_id(receipt_number) is not None:
+        return jsonify({'error': f'receipt with number {receipt_number} already exists'}), 400
 
     if not isinstance(print_date, datetime):
         try:
@@ -29,13 +32,20 @@ def validate_receipt(data):
     for product in products_list:
         upc = product.get('upc')
         quantity = product.get('product_number')
+        is_promo = bool(product.get('is_promo', False))
 
         if not upc or not quantity:
             return jsonify({'error': 'missing product UPC or quantity'}), 400
 
-        product_data = fetch_store_product(upc)
+        product_data = fetch_store_product_by_id_and_promo(upc, is_promo)
         if product_data is None:
             return jsonify({'error': f'product with UPC {upc} not found'}), 404
+        available_quantity = product_data.get('products_number')
+        if quantity > available_quantity:
+            return jsonify({
+                'error': f'not enough stock for product UPC {upc}. '
+                         f'Available: {available_quantity}, requested: {quantity}'
+            }), 400
 
         selling_price = product_data['selling_price']
         total_price = selling_price * quantity
@@ -44,7 +54,8 @@ def validate_receipt(data):
         full_products_list.append({
             'upc': upc,
             'product_number': quantity,
-            'selling_price': selling_price
+            'selling_price': selling_price,
+            'is_promo': is_promo
         })
 
     vat = sum_total * Decimal('0.2')
@@ -67,7 +78,7 @@ def fetch_receipt_by_id(receipt_id):
         where receipt_number = %s
     '''
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(query, (receipt_id,))
             receipt = cur.fetchone()
         return receipt
@@ -86,6 +97,11 @@ def fetch_receipts(cashier_id=None, start_date=None, end_date=None):
         params.append(cashier_id)
 
     if start_date is not None and end_date is not None:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+        except ValueError:
+            return jsonify({'error': 'invalid date format, expected YYYY-MM-DD'}), 400
         where_clauses.append('print_date between %s and %s')
         params.append(start_date)
         params.append(end_date)
@@ -94,20 +110,38 @@ def fetch_receipts(cashier_id=None, start_date=None, end_date=None):
         query += ' where ' + ' and '.join(where_clauses)
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            print(query)
+            print(params)
             cur.execute(query, params)
             receipts = cur.fetchall()
         return receipts
 
 
 def create_receipt(receipt):
-    query = '''
+    query_receipt = '''
         INSERT INTO receipt (receipt_number, id_employee, card_number, print_date, sum_total, vat)
         VALUES (%s, %s, %s, %s, %s, %s)
     '''
+    query_sale = '''
+        INSERT INTO sale (upc, receipt_number, product_number, selling_price)
+        VALUES (%s, %s, %s, %s)
+    '''
+    query_update_stock_regular = '''
+        UPDATE store_product
+        SET products_number = products_number - %s
+        WHERE upc = %s AND promotional_product = false
+    '''
+
+    query_update_stock_promo = '''
+        UPDATE store_product
+        SET products_number = products_number - %s
+        WHERE upc = %s AND promotional_product = true
+    '''
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, (
+            cur.execute(query_receipt, (
                 receipt['receipt_number'],
                 receipt['id_employee'],
                 receipt.get('card_number'),
@@ -116,16 +150,25 @@ def create_receipt(receipt):
                 receipt['vat']
             ))
 
-            for upc in receipt['products_list']:
-                cur.execute('''
-                    INSERT INTO sale (upc, receipt_number, product_number, selling_price)
-                    VALUES (%s, %s, %s, %s)
-                ''', (
-                    upc['upc'],
+            for product in receipt['products_list']:
+                cur.execute(query_sale, (
+                    product['upc'],
                     receipt['receipt_number'],
-                    upc['product_number'],
-                    upc['selling_price']
+                    product['product_number'],
+                    product['selling_price']
                 ))
+
+                if product.get('is_promo'):
+                    cur.execute(query_update_stock_promo, (
+                        product['product_number'],
+                        product['upc']
+                    ))
+                else:
+                    cur.execute(query_update_stock_regular, (
+                        product['product_number'],
+                        product['upc']
+                    ))
+
         conn.commit()
 
 
@@ -135,3 +178,27 @@ def dump_receipt(receipt_id):
         with conn.cursor() as cur:
             cur.execute(query, (receipt_id,))
         conn.commit()
+
+
+def fetch_store_product_by_id_and_promo(upc, promo_code=False):
+    query = '''
+        select upc, upc_prom, id_product, selling_price, products_number, promotional_product
+        from store_product
+        where upc = %s and promotional_product = %s
+    '''
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (upc, promo_code))
+            product = cur.fetchone()
+            if product is not None:
+                return {
+                    'upc': product[0],
+                    'upc_prom': product[1],
+                    'id_product': product[2],
+                    'selling_price': product[3],
+                    'products_number': product[4],
+                    'promotional_product': product[5]
+                }
+            else:
+                return None
