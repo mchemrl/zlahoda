@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify
 from backend.services.client_service import fetch_client
 from backend.services.employees_service import fetch_employee_by_id
 from backend.services.receipts_service import fetch_receipt_by_id, fetch_receipts, validate_receipt, create_receipt, \
-    dump_receipt
+    dump_receipt, fetch_total_sum, fetch_product_amount_in_receipts
 
 receipts = Blueprint('receipts', __name__)
 
@@ -34,6 +34,47 @@ def get_receipts():
         return jsonify(receipts_res), 200
 
     receipts_res = fetch_receipts()
+    return jsonify(receipts_res), 200
+
+
+@receipts.route('/total_sum', methods=('GET',))
+def get_total_sum():
+    cashier_id = request.args.get('cashier_id')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    if cashier_id is not None:
+        if start_date is not None and end_date is not None:
+            receipts_res = fetch_total_sum(cashier_id, start_date, end_date)
+        else:
+            receipts_res = fetch_total_sum(cashier_id=cashier_id)
+        return jsonify(receipts_res), 200
+    if start_date is not None and end_date is not None:
+        receipts_res = fetch_total_sum(start_date=start_date, end_date=end_date)
+        return jsonify(receipts_res), 200
+
+    receipts_res = fetch_total_sum()
+    return jsonify(receipts_res), 200
+
+
+@receipts.route('/product_amount', methods=('GET',))
+def get_product_amount():
+    upc = request.args.get('upc')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    if upc is not None:
+        if start_date is not None and end_date is not None:
+            receipts_res = fetch_product_amount_in_receipts(upc, start_date, end_date)
+        else:
+            receipts_res = fetch_product_amount_in_receipts(upc)
+        return jsonify(receipts_res), 200
+
+    if start_date is not None and end_date is not None:
+        receipts_res = fetch_product_amount_in_receipts(start_date=start_date, end_date=end_date)
+        return jsonify(receipts_res), 200
+
+    receipts_res = fetch_product_amount_in_receipts()
     return jsonify(receipts_res), 200
 
 

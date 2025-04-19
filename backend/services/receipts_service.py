@@ -202,3 +202,70 @@ def fetch_store_product_by_id_and_promo(upc, promo_code=False):
                 }
             else:
                 return None
+
+
+def fetch_total_sum(cashier_id=None, start_date=None, end_date=None):
+    query = '''
+        select sum(sum_total) as total_sum
+        from receipt
+    '''
+    params = []
+    where_clauses = []
+
+    if cashier_id is not None:
+        where_clauses.append('id_employee = %s')
+        params.append(cashier_id)
+
+    if start_date is not None and end_date is not None:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+        except ValueError:
+            return jsonify({'error': 'invalid date format, expected YYYY-MM-DD'}), 400
+        where_clauses.append('print_date between %s and %s')
+        params.append(start_date)
+        params.append(end_date)
+
+    if where_clauses:
+        query += ' where ' + ' and '.join(where_clauses)
+
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query, params)
+            total_sum = cur.fetchone()
+        return total_sum
+
+
+def fetch_product_amount_in_receipts(upc=None, start_date=None, end_date=None):
+    query = '''
+        SELECT SUM(s.product_number) AS total_product_number
+        FROM sale s
+        JOIN receipt r ON s.receipt_number = r.receipt_number
+    '''
+    params = []
+    where_clauses = []
+
+    if upc is not None:
+        where_clauses.append('s.upc = %s')
+        params.append(upc)
+
+    if start_date is not None and end_date is not None:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError('Invalid date format, expected YYYY-MM-DD')
+
+        where_clauses.append('r.print_date BETWEEN %s AND %s')
+        params.append(start_date)
+        params.append(end_date)
+
+    if where_clauses:
+        query += ' WHERE ' + ' AND '.join(where_clauses)
+
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query, params)
+            result = cur.fetchone()
+
+    return result.get('total_product_number') or 0
