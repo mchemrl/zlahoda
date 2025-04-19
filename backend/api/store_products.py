@@ -9,6 +9,8 @@ from ..services.store_products_service import (fetch_store_products, fetch_store
 
 store_product = Blueprint('store_products', __name__)
 
+DISCOUNT_RATE = 0.80
+
 @store_product.route('/', methods=['GET'])
 def get_store_products():
     upc = request.args.get('upc', type=str)
@@ -28,30 +30,37 @@ def get_store_products():
         return jsonify(products)
 
 @store_product.route('/', methods=('POST',))
-@manager_required
+#@manager_required
 def add_store_product():
     data = request.json
     id_product = data.get('id_product')
-    UPC = data.get('UPC')
-    UPC_prom = data.get('UPC_prom') or None
-    selling_price = data.get('selling_price')
+    UPC = data.get('upc')
+    UPC_prom = data.get('upc_prom') or None
     products_number = data.get('products_number')
     promotional_product = data.get('promotional_product', False)
 
-    if not id_product or not UPC or not selling_price or not products_number:
+    if not id_product or not UPC or not products_number:
         return jsonify({'error': 'missing required fields'}), 400
 
     existing = fetch_store_product_by_id_product_and_promo(id_product, promotional_product)
     if existing:
         return jsonify({'error': 'store product with this id_product and promotional flag already exists'}), 400
 
-    if selling_price <= 0:
-        return jsonify({'error': 'invalid selling_price'}), 400
+    if promotional_product:
+        base = fetch_store_product(UPC_prom)
+        if not base:
+            return jsonify({'error': 'base product not found for promo'}), 400
+        selling_price = round(float(base['selling_price']) * DISCOUNT_RATE, 2)
+    else:
+        selling_price = data.get('selling_price')
+        if not selling_price or selling_price <= 0:
+            return jsonify({'error': 'invalid selling_price'}), 400
 
     if products_number <= 0:
-       return jsonify({'error': 'invalid products_number'}), 400
+        return jsonify({'error': 'invalid products_number'}), 400
 
-    upc_used = save_store_product(UPC,
+    upc_used = save_store_product(
+        UPC,
         int(id_product),
         float(selling_price),
         int(products_number),
@@ -59,14 +68,14 @@ def add_store_product():
         UPC_prom
     )
 
-    prod = fetch_store_product(UPC)
-    if prod:
-        print(f'is prod: {prod}')
-        
+    prod = fetch_store_product(upc_used)
+    if not prod:
+        return jsonify({'error': 'failed to fetch created product'}), 500
+
     gross = float(prod['selling_price'])
     net = round(gross / 1.2, 2)
     vat = round(gross - net, 2)
-    final = round(gross * (0.8 if prod['promotional_product'] else 1), 2)
+    final = gross
 
     return jsonify({
         'upc': upc_used,
@@ -79,10 +88,11 @@ def add_store_product():
             'vat_amount': vat,
             'final_price': final
         }
-       }), 200
+    }), 200
+
 
 @store_product.route('/', methods=['DELETE'])
-@manager_required
+#@manager_required
 def delete_store_product():
     upc = request.args.get('upc', type=str)
     if not upc:
@@ -96,7 +106,7 @@ def delete_store_product():
     return jsonify({'message': 'store product deleted!'}), 200
 
 @store_product.route('/', methods=['PUT'])
-@manager_required
+#@manager_required
 def update_store_product():
     upc = request.args.get('upc', type=str)
     if not upc:
@@ -115,14 +125,15 @@ def update_store_product():
 
     conflicting_product = fetch_store_product_by_id_product_and_promo(id_product, promotional_product)
     if conflicting_product and conflicting_product['upc'] != upc:
-        return jsonify({'error': 'a store product with this id_product and type already exists'}), 400
+        #return conflicting_product
+        return jsonify({'error': 'a store product with this id_product and promotional type already exists'}), 400
 
     edit_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom)
 
     gross = selling_price
     net = round(gross / 1.2, 2)
     vat = round(gross - net, 2)
-    final = round(gross * (0.8 if promotional_product else 1), 2)
+    final = round(gross * (DISCOUNT_RATE if promotional_product else 1), 2)
 
     return jsonify({
         'upc': upc,
