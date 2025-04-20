@@ -1,4 +1,3 @@
-from backend.api import client
 from backend.db import get_connection
 
 def fetch_client(card_number):
