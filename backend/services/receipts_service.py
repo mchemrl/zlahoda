@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from flask import jsonify
+from flask import jsonify, session
 from psycopg2.extras import RealDictCursor
 
 from backend.db import get_connection
@@ -9,7 +9,7 @@ from backend.db import get_connection
 
 def validate_receipt(data):
     receipt_number = data.get('receipt_number')
-    id_employee = data.get('id_employee')
+    id_employee = session.get('user_id')
     card_number = data.get('card_number')
     print_date = data.get('print_date')
     products_list = data.get('products')
@@ -111,8 +111,6 @@ def fetch_receipts(cashier_id=None, start_date=None, end_date=None):
 
     with get_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            print(query)
-            print(params)
             cur.execute(query, params)
             receipts = cur.fetchall()
         return receipts
