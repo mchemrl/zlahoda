@@ -7,9 +7,9 @@ sales = Blueprint('sales', __name__)
 
 @sales.route('/', methods=('GET',))
 def get_sales():
-    sale_id = request.args.get('sale_id')
-    if sale_id is not None:
-        sales_res = fetch_sale_by_id(sale_id)
+    receipt_id = request.args.get('receipt_id')
+    if receipt_id is not None:
+        sales_res = fetch_sale_by_id(receipt_id)
         if not sales_res:
             return jsonify({"error": "sale not found"}), 404
         return jsonify(sales_res), 200
