@@ -116,30 +116,57 @@ def update_store_product():
     if not existing:
         return jsonify({'error': 'store product not found'}), 404
 
-    data = request.json
-    upc_prom = data.get('upc_prom')
-    id_product = data.get('id_product')
-    selling_price = data.get('selling_price')
-    products_number = data.get('products_number')
-    promotional_product = data.get('promotional_product', False)
+    orig_id = existing['id_product']
+    orig_promo = existing['promotional_product']
+    orig_upc_prom = existing.get('upc_prom')
 
-    conflicting_product = fetch_store_product_by_id_product_and_promo(id_product, promotional_product)
-    if conflicting_product and conflicting_product['upc'] != upc:
-        #return conflicting_product
-        return jsonify({'error': 'a store product with this id_product and promotional type already exists'}), 400
+    data = request.json or dict()
+    new_price = data.get('selling_price', existing['selling_price'])
+    new_qty   = data.get('products_number', existing['products_number'])
 
-    edit_store_product(upc, id_product, selling_price, products_number, promotional_product, upc_prom)
+    edit_store_product(
+        upc,
+        orig_id,
+        float(new_price),
+        int(new_qty),
+        orig_promo,
+        orig_upc_prom
+    )
 
-    gross = selling_price
-    net = round(gross / 1.2, 2)
-    vat = round(gross - net, 2)
-    final = round(gross * (DISCOUNT_RATE if promotional_product else 1), 2)
+    if not orig_promo:
+        promo_conflict = fetch_store_product_by_id_product_and_promo(orig_id, True)
+        if promo_conflict:
+            promo_upc = promo_conflict['upc']
+            promo_rec = fetch_store_product(promo_upc)
+
+            new_promo_price = round(float(new_price) * DISCOUNT_RATE, 2)
+
+            old_base_qty  = existing['products_number']
+            delta = int(new_qty) - old_base_qty
+            new_promo_qty = promo_rec['products_number']
+            if delta < 0:
+                new_promo_qty = max(new_promo_qty + delta, 0)
+
+            edit_store_product(
+                promo_upc,
+                orig_id,
+                new_promo_price,
+                new_promo_qty,
+                True,
+                promo_rec.get('upc_prom')
+            )
+
+    updated = fetch_store_product(upc)
+    gross = float(updated['selling_price'])
+    net   = round(gross / 1.2, 2)
+    vat   = round(gross - net, 2)
+    final = round(gross * (DISCOUNT_RATE if updated['promotional_product'] else 1), 2)
 
     return jsonify({
         'upc': upc,
-        'id_product': id_product,
-        'products_number': products_number,
-        'promotional_product': promotional_product,
+        'id_product': updated['id_product'],
+        'products_number': updated['products_number'],
+        'promotional_product': updated['promotional_product'],
         'prices': {
             'gross_price': gross,
             'net_price': net,
@@ -147,5 +174,3 @@ def update_store_product():
             'final_price': final
         }
     }), 200
-
-
