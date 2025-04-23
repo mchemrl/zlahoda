@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, make_response
 from xhtml2pdf import pisa
 from io import BytesIO
-from backend.decorators import manager_required
+from backend.utils.decorators import manager_required
 
 
 def create_report_blueprint(bp_name, import_name, fetch_func, template_path, filename):

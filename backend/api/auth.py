@@ -2,7 +2,7 @@ from flask import Blueprint, request, session, g, jsonify
 from psycopg2 import IntegrityError
 from werkzeug.security import check_password_hash
 
-from backend.decorators import manager_required
+from backend.utils.decorators import manager_required
 from backend.services.auth_service import fetch_user_by_username, fetch_employee_by_user_id, create_user, \
     fetch_user_by_id
 from backend.services.employees_service import fetch_employee_by_id

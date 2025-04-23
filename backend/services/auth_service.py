@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash
 
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 
 def fetch_user_by_username(username):

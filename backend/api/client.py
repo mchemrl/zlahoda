@@ -2,7 +2,7 @@ import re
 
 from flask import Blueprint, jsonify, request, session
 
-from ..decorators import manager_required, cashier_required
+from backend.utils.decorators import manager_required, cashier_required
 from ..services.client_service import edit_client, dump_client, create_client, fetch_client, fetch_clients
 
 client = Blueprint('client', __name__)

@@ -1,4 +1,4 @@
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 def fetch_client(card_number):
     with get_connection() as conn:

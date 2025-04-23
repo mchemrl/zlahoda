@@ -1,6 +1,6 @@
 from flask import session
 
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 def fetch_store_product(upc):
     with get_connection() as conn:
@@ -123,7 +123,7 @@ def edit_store_product(upc, id_product, selling_price, new_products_number, prom
             """, (upc,))
             product_record = cur.fetchone()
             if not product_record:
-                raise ValueError("Product not found")
+                raise ValueError("product not found")
             old_products_number = product_record[1]
             old_promotional_flag = product_record[2]
 
@@ -168,7 +168,7 @@ def edit_store_product(upc, id_product, selling_price, new_products_number, prom
                     new_base_qty = base_qty - diff
                     if new_base_qty < 0:
                         raise ValueError(
-                            f"Not enough base product quantity. Available: {base_qty}, need to change to: {diff}")
+                            f"not enough base product quantity. Available: {base_qty}, need to change to: {diff}")
                     cur.execute("""
                         update store_product
                         set products_number = %s
@@ -249,7 +249,6 @@ def save_store_product(UPC, id_product, selling_price, products_number, promotio
 
 
 def fetch_store_product_by_id_product_and_promo(id_product, promotional_product):
-    from backend.db import get_connection
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""

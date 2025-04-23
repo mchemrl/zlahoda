@@ -1,4 +1,4 @@
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 
 def fetch_categories(sort_by=None, is_ascending=None):

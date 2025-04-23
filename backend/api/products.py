@@ -1,7 +1,7 @@
 import psycopg2
 from flask import Blueprint, request, jsonify
 
-from ..decorators import manager_required, login_required
+from backend.utils.decorators import manager_required, login_required
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
 products = Blueprint('products', __name__)

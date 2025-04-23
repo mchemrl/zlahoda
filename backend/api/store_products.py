@@ -1,7 +1,7 @@
 import psycopg2
 from flask import Blueprint, request, jsonify
 
-from ..decorators import manager_required
+from backend.utils.decorators import manager_required
 from ..services.store_products_service import (fetch_store_products, fetch_store_product,
                                                edit_store_product, dump_store_product,
                                                create_store_product, save_store_product,

@@ -1,6 +1,6 @@
 from psycopg2.extras import RealDictCursor
 
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 
 def fetch_sales():

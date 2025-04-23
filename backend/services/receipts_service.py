@@ -4,7 +4,7 @@ from decimal import Decimal
 from flask import jsonify, session
 from psycopg2.extras import RealDictCursor
 
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 
 def validate_receipt(data):

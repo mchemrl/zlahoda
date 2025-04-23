@@ -3,8 +3,7 @@ from datetime import datetime
 
 from flask import jsonify
 
-from backend.db import get_connection
-
+from backend.utils.db import get_connection
 
 def fetch_employees(sort_by=None, is_ascending=None, role=None, search_by=None, search_value=None):
     query = '''select * from employee'''

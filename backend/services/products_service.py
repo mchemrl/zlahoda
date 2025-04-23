@@ -1,4 +1,4 @@
-from backend.db import get_connection
+from backend.utils.db import get_connection
 
 def fetch_products(category=None, search=None, descending = False):
     base_query = 'select id_product, product_name, category_name, characteristics from product p join category c on p.category_number = c.category_number'

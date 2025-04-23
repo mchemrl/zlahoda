@@ -1,6 +1,3 @@
-import re
-
-from datetime import datetime
 from flask import Blueprint, jsonify, request, session
 from backend.services.employees_service import fetch_employees, fetch_employee_by_id, create_employee, edit_employee, \
     dump_employee, validate_employee
