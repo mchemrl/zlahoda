@@ -9,6 +9,8 @@ export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [addClientModalOpen, setAddClientModalOpen] = useState(false);
+  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [newClient, setNewClient] = useState({});
 
   useEffect(() => {
@@ -136,6 +138,12 @@ export default function ClientsPage() {
           >
             Filter
           </button>
+          <button
+            onClick={() => setReportModalOpen(true)}
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          >
+            Make Report
+          </button>
         </div>
         <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea]">
@@ -183,6 +191,25 @@ export default function ClientsPage() {
             </tbody>
           </table>
         </div>
+          {/* Report Modal */}
+      {reportModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
+            <button
+              onClick={() => setReportModalOpen(false)}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl mb-4">Clients Report Preview</h2>
+            <iframe
+              src="http://localhost:5000/api/client/report/preview?preview=true"
+              title="Products Report Preview"
+              className="w-full h-3/4"
+            ></iframe>
+          </div>
+        </div>
+      )}
         {localStorage.getItem("role") === "Manager" && (
           <button
             onClick={() => {

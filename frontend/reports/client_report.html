@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Client Report</title>
-  <style>
+    <style>
     table {
       border-collapse: collapse;
       width: 100%;
@@ -16,43 +16,64 @@
     th {
       background-color: #f2f2f2;
     }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    h1 {
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 <body>
   <h1>Client Report</h1>
-  <a href="{{ url_for('api.client_report.export_pdf') }}">
-    <button type="button">Export as PDF</button>
-  </a>
+  {% if show_export %}
+  <div class="export-btn">
+    <a href="{{ url_for('api.client_report.export_pdf') }}" target="_blank">
+      <button type="button">Export as PDF</button>
+    </a>
+  </div>
+  {% endif %}
+  <hr>
   <table>
     <thead>
       <tr>
         <th>Card Number</th>
         <th>Surname</th>
-          <th>Name</th>
-          <th>Patronymic</th>
-          <th>Phone</th>
-          <th>City</th>
-          <th>Street</th>
-          <th>Zip Code</th>
-          <th>Percent</th>
+        <th>Name</th>
+        <th>Patronymic</th>
+        <th>Phone</th>
+        <th>City</th>
+        <th>Street</th>
+        <th>Zip Code</th>
+        <th>Percent</th>
       </tr>
     </thead>
     <tbody>
-      {% for client in clients %}
+      {% for client in items %}
       <tr>
         <td>{{ client.card_number }}</td>
         <td>{{ client.cust_surname }}</td>
-          <td>{{ client.cust_name }}</td>
-          <td>{{ client.cust_patronymic }}</td>
-          <td>{{ client.phone_number }}</td>
-          <td>{{ client.city }}</td>
-          <td>{{ client.street }}</td>
-          <td>{{ client.zip_code }}</td>
-          <td>{{ client.percent }}</td>
+        <td>{{ client.cust_name }}</td>
+        <td>{{ client.cust_patronymic }}</td>
+        <td>{{ client.phone_number }}</td>
+        <td>{{ client.city }}</td>
+        <td>{{ client.street }}</td>
+        <td>{{ client.zip_code }}</td>
+        <td>{{ client.percent }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  <br>
 </body>
 </html>

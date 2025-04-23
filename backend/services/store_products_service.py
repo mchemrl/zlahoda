@@ -41,7 +41,7 @@ def fetch_store_product(upc):
             else:
                 return None
 
-def fetch_store_products(promotional, category, sort, descending = False):
+def fetch_store_products(promotional = None, category = None, sort = 'product_name', descending = False):
     base_query = """
         select sp.UPC,sp.UPC_prom, p.id_product, p.product_name, sp.selling_price,
             sp.products_number, sp.promotional_product, c.category_name
@@ -80,7 +80,6 @@ def fetch_store_products(promotional, category, sort, descending = False):
         with conn.cursor() as cur:
             cur.execute(base_query, tuple(parameters))
             store_products = cur.fetchall()
-
     return [
             {
             "upc": row[0],

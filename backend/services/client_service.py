@@ -22,7 +22,7 @@ def fetch_client(card_number):
             else:
                 return None
 
-def fetch_clients(search, percent, descending=False):
+def fetch_clients(search = None, percent = None, descending=False):
     base_query = """
             select card_number, cust_surname, cust_name, cust_patronymic, phone_number, city, street, zip_code, percent
             from customer_card

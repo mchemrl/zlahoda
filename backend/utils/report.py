@@ -1,5 +1,4 @@
-# backend/utils/report_generator.py
-from flask import Blueprint, render_template, make_response
+from flask import Blueprint, render_template, make_response, request
 from xhtml2pdf import pisa
 from io import BytesIO
 from backend.utils.decorators import manager_required
@@ -12,13 +11,19 @@ def create_report_blueprint(bp_name, import_name, fetch_func, template_path, fil
     @manager_required
     def preview():
         items = fetch_func()
-        return render_template(template_path, products=items)
+        preview_flag = request.args.get('preview', '').lower()
+        show_export = preview_flag in ('1', 'true', 'yes')
+        return render_template(
+            template_path,
+            items=items,
+            show_export=show_export
+        )
 
     @bp.route('/pdf', methods=['GET'])
     @manager_required
     def export_pdf():
         items = fetch_func()
-        html = render_template(template_path, products=items)
+        html = render_template(template_path, items=items)
         return _generate_pdf_response(html, filename)
 
     return bp

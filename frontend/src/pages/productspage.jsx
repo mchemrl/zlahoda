@@ -271,7 +271,7 @@ export default function ProductsPage() {
             </button>
             <h2 className="text-2xl mb-4">Products Report Preview</h2>
             <iframe
-              src="http://localhost:5000/api/products/report/preview"
+              src="http://localhost:5000/api/products/report/preview?preview=true"
               title="Products Report Preview"
               className="w-full h-3/4"
             ></iframe>
