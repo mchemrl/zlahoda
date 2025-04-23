@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Header from "C:\\Users\\lucka\\OneDrive\\Документы\\GitHub\\zlahodareal\\frontend\\src\\components\\header.jsx";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -42,38 +43,7 @@ export default function UserProfile() {
 
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col items-center">
-      <header className="w-full h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6 max-h-[83.9px]">
-        <div className="text-orange-50 text-3xl flex items-center">
-          Zlahoda
-          <img
-            src="static/bumbastik/bumbastik_thumbs.gif"
-            alt="Loading GIF"
-            className="w-15 h-15"
-          />
-        </div>
-        <nav className="flex space-x-6 text-orange-50 text-lg">
-          <ul className="flex space-x-6">
-            <li className="cursor-pointer hover:underline">
-              <Link to="/clients">Client</Link>
-            </li>
-            <li className="cursor-pointer hover:underline">
-              <Link to="/products">Products</Link>
-            </li>
-            <li className="cursor-pointer hover:underline">
-              <Link to="/store-products">Store Products</Link>
-            </li>
-            <li className="cursor-pointer hover:underline">Checks</li>
-            {localStorage.getItem("role") === "Manager" && (
-                            <li className="cursor-pointer hover:underline">
-                                <Link to="/categories">Categories</Link>
-                            </li>
-                        )}
-            <li className="cursor-pointer hover:underline">
-              <Link to="/profile">Profile</Link>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      <Header />
       {user !== null ? (
         <main className="flex-grow flex flex-row items-center justify-center w-full h-screen overflow-hidden px-8 py-8">
           <div>

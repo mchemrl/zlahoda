@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Header from "C:\\Users\\lucka\\OneDrive\\Документы\\GitHub\\zlahodareal\\frontend\\src\\components\\header.jsx";
 
 export default function ClientsPage() {
   const [surname, setSurname] = useState("");
@@ -72,38 +73,7 @@ export default function ClientsPage() {
 
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
-      <header className="w-screen h-24 bg-[#f57b20] bg-opacity-75 shadow-lg flex justify-between items-center px-6">
-        <div className="text-orange-50 text-3xl flex items-center">
-          Zlahoda
-          <img
-            src="static/bumbastik/bumbastik_thumbs.gif"
-            alt="Loading GIF"
-            className="w-15 h-15"
-          />
-        </div>
-        <nav className="flex space-x-6 text-orange-50 text-lg">
-          <ul className="flex space-x-6">
-            <li className="cursor-pointer hover:underline">
-              <Link to="/clients">Client</Link>
-            </li>
-            <li className="cursor-pointer hover:underline">
-              <Link to="/products">Products</Link>
-            </li>
-            <li className="cursor-pointer hover:underline">
-              <Link to="/store-products">Store Products</Link>
-            </li>
-            <li className="cursor-pointer hover:underline">Checks</li>
-            {localStorage.getItem("role") === "Manager" && (
-                            <li className="cursor-pointer hover:underline">
-                                <Link to="/categories">Categories</Link>
-                            </li>
-                        )}
-            <li className="cursor-pointer hover:underline">
-              <Link to="/profile">Profile</Link>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      <Header />
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
         <div className="w-full flex space-x-6">
           {localStorage.getItem("role") === "Cashier" ? (
@@ -196,25 +166,25 @@ export default function ClientsPage() {
             </tbody>
           </table>
         </div>
-          {/* Report Modal */}
-      {reportModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
-            <button
-              onClick={() => setReportModalOpen(false)}
-              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl mb-4">Clients Report Preview</h2>
-            <iframe
-              src="http://localhost:5000/api/client/report/preview?preview=true"
-              title="Products Report Preview"
-              className="w-full h-3/4"
-            ></iframe>
+        {/* Report Modal */}
+        {reportModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
+              <button
+                onClick={() => setReportModalOpen(false)}
+                className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+              >
+                ✕
+              </button>
+              <h2 className="text-2xl mb-4">Clients Report Preview</h2>
+              <iframe
+                src="http://localhost:5000/api/client/report/preview?preview=true"
+                title="Products Report Preview"
+                className="w-full h-3/4"
+              ></iframe>
+            </div>
           </div>
-        </div>
-      )}
+        )}
         {localStorage.getItem("role") === "Manager" && (
           <button
             onClick={() => {
