@@ -3,6 +3,7 @@ from psycopg2 import IntegrityError
 
 from backend.services.categories_service import fetch_categories, fetch_category_by_id, create_category, edit_category, \
     dump_category
+from backend.utils.decorators import manager_required
 
 categories = Blueprint('categories', __name__)
 
@@ -38,6 +39,7 @@ def get_categories():
 
 
 @categories.route('/', methods=('POST',))
+@manager_required
 def add_category():
     data = request.get_json()
     category_id = data.get('category_id')
@@ -46,7 +48,7 @@ def add_category():
     if not category_name:
         return jsonify({"error": "category name is required"}), 400
     if fetch_category_by_id(category_id) is not None:
-        return jsonify({"error": "category already exists"}), 400
+        return jsonify({"error": "Category with this ID already exists"}), 400
 
     create_category(category_id, category_name)
 
@@ -54,6 +56,7 @@ def add_category():
 
 
 @categories.route('/', methods=('PUT',))
+@manager_required
 def update_category():
     category_id = request.args.get('category_id', type=int)
     if not category_id:
@@ -73,6 +76,7 @@ def update_category():
     return jsonify({"message": "category updated successfully"}), 200
 
 @categories.route('/', methods=('DELETE',))
+@manager_required
 def delete_category():
     category_id = request.args.get('category_id', type=int)
     if not category_id:

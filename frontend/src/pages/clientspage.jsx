@@ -93,6 +93,11 @@ export default function ClientsPage() {
               <Link to="/store-products">Store Products</Link>
             </li>
             <li className="cursor-pointer hover:underline">Checks</li>
+            {localStorage.getItem("role") === "Manager" && (
+                            <li className="cursor-pointer hover:underline">
+                                <Link to="/categories">Categories</Link>
+                            </li>
+                        )}
             <li className="cursor-pointer hover:underline">
               <Link to="/profile">Profile</Link>
             </li>

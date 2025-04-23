@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function UserProfile() {
@@ -63,6 +63,11 @@ export default function UserProfile() {
               <Link to="/store-products">Store Products</Link>
             </li>
             <li className="cursor-pointer hover:underline">Checks</li>
+            {localStorage.getItem("role") === "Manager" && (
+                            <li className="cursor-pointer hover:underline">
+                                <Link to="/categories">Categories</Link>
+                            </li>
+                        )}
             <li className="cursor-pointer hover:underline">
               <Link to="/profile">Profile</Link>
             </li>

@@ -5,6 +5,7 @@ import ProductsPage from "./pages/productspage";
 import StoreProducts from "./pages/storeproducts";
 import ProfilePage from "./pages/profile";
 import ClientsPage from "./pages/clientspage";
+import CategoriesPage from "./pages/categoriespage.jsx";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
       <Route path="/store-products" element={<StoreProducts />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/clients" element={<ClientsPage />} />
+      <Route path='/categories' element={<CategoriesPage />} />
     </Routes>
   );
 }
