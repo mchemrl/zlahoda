@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "C:\\Users\\lucka\\OneDrive\\Документы\\GitHub\\zlahodareal\\frontend\\src\\components\\header.jsx";
+import Header from "../components/header";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);

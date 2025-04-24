@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Header from "C:\\Users\\lucka\\OneDrive\\Документы\\GitHub\\zlahodareal\\frontend\\src\\components\\header.jsx";
+import Header from "../components/header";
 
 export default function ChecksPage() {
   const [checkNumber, setCheckNumber] = useState("");
   const [sortOrder, setSortOrder] = useState("Ascending");
+  const [errors, setErrors] = useState([]);
+  const [products, setProducts] = useState([]);
   const [checks, setChecks] = useState([]);
   const [cashiers, setCashiers] = useState([]);
   const [selectedCashier, setSelectedCashier] = useState("");
@@ -22,8 +24,24 @@ export default function ChecksPage() {
       .then((data) => setCashiers(data))
       .catch((err) => console.error("Error fetching cashiers:", err));
 
+    fetchProducts();
     handleFilter();
   }, []);
+  const fetchProducts = () => {
+    const queryParams = new URLSearchParams();
+
+    fetch(
+      `http://localhost:5000/api/store_products?${queryParams.toString()}`,
+      {
+        credentials: "include",
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setProducts(data);
+      })
+      .catch((error) => console.error("Error fetching products:", error));
+  };
 
   const fetchChecks = (params = {}) => {
     const queryParams = new URLSearchParams();
@@ -153,25 +171,48 @@ export default function ChecksPage() {
           onClick={() => setAddModalOpen(true)}
           className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
         >
-          Додати новий чек
+          Add new receipt
         </button>
       </main>
       {addModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-xl w-[500px] max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#f57b20] mb-4">Новий чек</h2>
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => setAddModalOpen(false)}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold text-[#f57b20] mb-4">
+              New receipt
+            </h2>
+            {errors.length > 0 && (
+              <div className="text-red-600 mb-4">
+                {errors.map((err, idx) => (
+                  <div key={idx}>{err}</div>
+                ))}
+              </div>
+            )}
+
             {newReceipt.items.map((item, index) => (
               <div key={index} className="flex gap-2 items-center mb-2">
-                <input
-                  placeholder="ID продукту"
-                  value={item.id_product}
+                <select
+                  value={item.UPC}
                   onChange={(e) => {
                     const updated = [...newReceipt.items];
-                    updated[index].id_product = e.target.value;
+                    updated[index].UPC = e.target.value;
                     setNewReceipt({ ...newReceipt, items: updated });
                   }}
-                  className="border px-2 py-1 flex-1"
-                />
+                  className="w-full border p-2 rounded border-[#f57b20] text-[#f57b20]"
+                >
+                  <option value="">Select product</option>
+                  {products.map((prod) => (
+                    <option key={prod.UPC} value={prod.UPC}>
+                      {prod.product_name}
+                    </option>
+                  ))}
+                </select>
+
                 <input
                   type="number"
                   min="1"
@@ -182,7 +223,7 @@ export default function ChecksPage() {
                     updated[index].quantity = Number(e.target.value);
                     setNewReceipt({ ...newReceipt, items: updated });
                   }}
-                  className="border px-2 py-1 w-24"
+                  className="border border-[#f57b20] rounded-md px-3 py-1 bg-white text-[#333]"
                 />
                 <button
                   onClick={() => {
@@ -206,18 +247,13 @@ export default function ChecksPage() {
               }
               className="text-[#f57b20] underline mb-4"
             >
-              + Додати ще товар
+              + Add another good
             </button>
 
             <div className="flex justify-between">
               <button
-                onClick={() => setAddModalOpen(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-              >
-                Скасувати
-              </button>
-              <button
                 onClick={() => {
+                  setErrors([]);
                   fetch("http://localhost:5000/api/receipts", {
                     method: "POST",
                     headers: {
@@ -226,18 +262,27 @@ export default function ChecksPage() {
                     credentials: "include",
                     body: JSON.stringify(newReceipt),
                   })
-                    .then((res) => res.json())
-                    .then(() => {
+                    .then(async (res) => {
+                      if (!res.ok) {
+                        const err = await res.json();
+                        setErrors(
+                          Array.isArray(err.message)
+                            ? err.message
+                            : [err.message || "Error saving receipt"]
+                        );
+                        return;
+                      }
                       setAddModalOpen(false);
                       handleFilter();
                     })
-                    .catch((err) =>
-                      console.error("Error adding receipt:", err)
-                    );
+                    .catch((err) => {
+                      setErrors(["Network error while saving receipt."]);
+                      console.error("Error adding receipt:", err);
+                    });
                 }}
                 className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c]"
               >
-                Зберегти
+                Save
               </button>
             </div>
           </div>
