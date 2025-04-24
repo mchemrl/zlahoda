@@ -31,6 +31,11 @@ const Header = () => {
               <Link to="/categories">Categories</Link>
             </li>
           )}
+          {localStorage.getItem("role") === "Manager" && (
+            <li className="cursor-pointer hover:underline">
+              <Link to="/statistics">Statistics</Link>
+            </li>
+          )}
           <li className="cursor-pointer hover:underline">
             <Link to="/profile">Profile</Link>
           </li>

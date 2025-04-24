@@ -7,6 +7,7 @@ import ProfilePage from "./pages/profile";
 import ClientsPage from "./pages/clientspage";
 import CategoriesPage from "./pages/categoriespage.jsx";
 import ChecksPage from "./pages/checkspage.jsx";
+import StatisticsPage from "./pages/statisticspage.jsx";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
       <Route path="/clients" element={<ClientsPage />} />
       <Route path="/categories" element={<CategoriesPage />} />
       <Route path="/receipts" element={<ChecksPage />} />
+      <Route path="/statistics" element={<StatisticsPage />} />
     </Routes>
   );
 }
