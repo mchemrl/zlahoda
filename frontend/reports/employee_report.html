@@ -3,10 +3,34 @@
 <head>
   <meta charset="utf-8">
   <title>Employee Report</title>
-    <style>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm;
+    }
+    .page {
+      width: 160mm;
+      page-break-after: always;
+    }
+    .content {
+      padding: 15mm;
+      box-sizing: border-box;
+    }
     table {
       border-collapse: collapse;
       width: 100%;
+      page-break-inside: auto;
+      font-size: 10px;
+    }
+    thead {
+      display: table-header-group;
+    }
+    tfoot {
+      display: table-footer-group;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
     }
     th, td {
       padding: 8px;
@@ -16,7 +40,11 @@
     th {
       background-color: #f2f2f2;
     }
-    button {
+    .export-btn {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .export-btn button {
       padding: 8px 16px;
       font-size: 14px;
       cursor: pointer;
@@ -25,61 +53,86 @@
       border: none;
       border-radius: 4px;
     }
-    button:hover {
+    .export-btn button:hover {
       background-color: #45a049;
     }
-    h1 {
-      font-family: Arial, sans-serif;
-      font-size: 24px;
-      margin-bottom: 16px;
+    {% if show_export %}
+    .preview-container {
+      overflow-y: auto;
+      max-height: 80vh;
+      padding: 20px;
+      background: #eee;
     }
+    .page {
+      height: auto;
+      margin: 0 auto 20px;
+      background: white;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+    .content {
+      height: auto;
+    }
+    {% endif %}
   </style>
 </head>
 <body>
-  <h1>Employee Report</h1>
   {% if show_export %}
-  <div class="export-btn">
-    <a href="{{ url_for('api.employee_report.export_pdf') }}" target="_blank">
-      <button type="button">Export as PDF</button>
-    </a>
-  </div>
+    <div class="export-btn">
+      <a href="{{ url_for('api.employee_report.export_pdf') }}" target="_blank">
+        <button type="button">Export as PDF</button>
+      </a>
+    </div>
   {% endif %}
-  <hr>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Surname</th>
-        <th>Name</th>
-        <th>Patronymic</th>
-        <th>Role</th>
-        <th>Salary</th>
-        <th>Date of Birth</th>
-        <th>Date of Start</th>
-        <th>Phone Number</th>
-        <th>City</th>
-        <th>Street</th>
-        <th>Zip Code</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for employee in items %}
-      <tr>
-        <td>{{ employee.id_employee }}</td>
-        <td>{{ employee.surname }}</td>
-        <td>{{ employee.name }}</td>
-        <td>{{ employee.patronymic }}</td>
-        <td>{{ employee.role }}</td>
-        <td>{{ employee.salary }}</td>
-        <td>{{ employee.date_of_birth }}</td>
-        <td>{{ employee.date_of_start }}</td>
-        <td>{{ employee.phone_number }}</td>
-        <td>{{ employee.city }}</td>
-        <td>{{ employee.street }}</td>
-        <td>{{ employee.zip_code }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% if show_export %}
+    {% set per_page = 19 %}
+  {% else %}
+    {% set per_page = 99999 %}
+  {% endif %}
+  <div class="{% if show_export %}preview-container{% endif %}">
+    {% for page_items in items|batch(per_page, '') %}
+      <div class="page">
+        <div class="content">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Surname</th>
+                <th>Name</th>
+                <th>Patronymic</th>
+                <th>Role</th>
+                <th>Salary</th>
+                <th>Date of Birth</th>
+                <th>Date of Start</th>
+                <th>Phone Number</th>
+                <th>City</th>
+                <th>Street</th>
+                <th>Zip Code</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for employee in page_items %}
+                {% if employee %}
+                  <tr>
+                    <td>{{ employee.id_employee }}</td>
+                    <td>{{ employee.surname }}</td>
+                    <td>{{ employee.name }}</td>
+                    <td>{{ employee.patronymic }}</td>
+                    <td>{{ employee.role }}</td>
+                    <td>{{ employee.salary }}</td>
+                    <td>{{ employee.date_of_birth }}</td>
+                    <td>{{ employee.date_of_start }}</td>
+                    <td>{{ employee.phone_number }}</td>
+                    <td>{{ employee.city }}</td>
+                    <td>{{ employee.street }}</td>
+                    <td>{{ employee.zip_code }}</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 </body>
 </html>

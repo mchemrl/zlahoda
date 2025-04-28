@@ -7,6 +7,7 @@ from .receipts import receipts
 from .sales import sales
 from .store_products import store_product
 from .client import client
+from .statistics import statistics
 
 from backend.utils.report_blueprints import (product_report, store_product_report,
                                              category_report, client_report, employee_report, receipt_report)
@@ -21,6 +22,7 @@ api.register_blueprint(store_product, url_prefix='/store_products')
 api.register_blueprint(client, url_prefix='/client')
 api.register_blueprint(receipts, url_prefix='/receipts')
 api.register_blueprint(sales, url_prefix='/sales')
+api.register_blueprint(statistics, url_prefix='/statistics')
 
 api.register_blueprint(product_report, url_prefix='/products/report')
 api.register_blueprint(store_product_report, url_prefix='/store_products/report')

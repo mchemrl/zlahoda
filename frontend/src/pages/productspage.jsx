@@ -234,25 +234,25 @@ export default function ProductsPage() {
         )}
       </main>
 
-      {/* Report Modal */}
-      {reportModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
-            <button
-              onClick={() => setReportModalOpen(false)}
-              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl mb-4">Products Report Preview</h2>
-            <iframe
-              src="http://localhost:5000/api/products/report/preview?preview=true"
-              title="Products Report Preview"
-              className="w-full h-3/4"
-            ></iframe>
-          </div>
-        </div>
-      )}
+{reportModalOpen && (
+  <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm p-4">
+    <div className="bg-white rounded-2xl shadow-lg p-6 relative max-w-screen-lg w-full">
+      <button
+        onClick={() => setReportModalOpen(false)}
+        className="absolute top-4 right-4 text-[#f57b20] text-xl"
+      >
+        ✕
+      </button>
+      <h2 className="text-2xl mb-4">Products Report Preview</h2>
+      <iframe
+        src="http://localhost:5000/api/products/report/preview?preview=true"
+        title="Products Report Preview"
+        className="w-full h-[80vh] border"
+        style={{ backgroundColor: '#ccc' }}
+      />
+    </div>
+  </div>
+)}
 
       {selectedProduct && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
