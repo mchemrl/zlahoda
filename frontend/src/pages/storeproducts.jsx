@@ -10,7 +10,6 @@ export default function StoreProductsPage() {
   const [sortBy, setSortBy] = useState("product_name");
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [categories, setCategories] = useState([]);
-  const [addProductModalOpen, setAddProductModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [promotional, setPromotional] = useState("all");
   const [addStoreProductModalOpen, setAddStoreProductModalOpen] =

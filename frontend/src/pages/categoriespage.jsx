@@ -12,35 +12,35 @@ export default function CategoriesPage() {
     category_name: "",
   });
   const [errorMessage, setErrorMessage] = useState(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is Manager
     if (localStorage.getItem("role") !== "Manager") {
-      navigate("/profile"); // Redirect to login page if not Manager
+      navigate("/profile");
       return;
     }
 
-    // Fetch categories without sorting by default
     fetchCategories({});
   }, [navigate]);
 
   const fetchCategories = (params = {}) => {
-    const queryParams = new URLSearchParams();
+  const queryParams = new URLSearchParams();
 
-    if (params.sort_by) queryParams.append("sort_by", params.sort_by);
-    if (params.is_ascending !== undefined)
-      queryParams.append("is_ascending", params.is_ascending ? 1 : 0);
+  if (params.category_id) queryParams.append("category_id", params.category_id);  // Add category_id if present
+  if (params.sort_by) queryParams.append("sort_by", params.sort_by);
+  if (params.is_ascending !== undefined)
+    queryParams.append("is_ascending", params.is_ascending ? 1 : 0);
 
-    fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
-      credentials: "include",
+  fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
+    credentials: "include",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      setCategories(data);
     })
-      .then((response) => response.json())
-      .then((data) => {
-        setCategories(data);
-      })
-      .catch((error) => console.error("Error fetching categories:", error));
-  };
+    .catch((error) => console.error("Error fetching categories:", error));
+};
 
   const handleSort = () => {
     fetchCategories({
@@ -132,7 +132,7 @@ export default function CategoriesPage() {
         setAddCategoryModalOpen(false);
         setNewCategory({ category_id: "", category_name: "" });
         setErrorMessage(null);
-        fetchCategories({}); // Refresh without sorting
+        fetchCategories({});
       })
       .catch((err) => {
         console.error("Error adding category:", err);
@@ -141,11 +141,10 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
+    <div className="w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
-
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
-        <div className="w-full flex space-x-6">
+        <div className="w-full flex spacetransitions-x-6 mb-4">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
@@ -159,6 +158,12 @@ export default function CategoriesPage() {
             className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
           >
             Sort
+          </button>
+          <button
+            onClick={() => setReportModalOpen(true)}
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+          >
+            Make Report
           </button>
         </div>
 
@@ -180,11 +185,11 @@ export default function CategoriesPage() {
               ) : (
                 categories.map((category) => (
                   <tr
-                    key={category.id}
+                    key={category.id_category}
                     className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
                     onDoubleClick={() => openEditModal(category)}
                   >
-                    <td className="px-4 py-2">{category.id}</td>
+                    <td className="px-4 py-2">{category.id_category}</td>
                     <td className="px-4 py-2">{category.category_name}</td>
                   </tr>
                 ))
@@ -206,8 +211,9 @@ export default function CategoriesPage() {
         )}
       </main>
 
+
       {selectedCategory && localStorage.getItem("role") === "Manager" && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
               onClick={closeEditModal}
@@ -246,7 +252,7 @@ export default function CategoriesPage() {
       )}
 
       {addCategoryModalOpen && localStorage.getItem("role") === "Manager" && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50 transition-all duration-200 opacity-100">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 w-96 relative">
             <button
               onClick={() => {
@@ -291,6 +297,24 @@ export default function CategoriesPage() {
             >
               Add Category
             </button>
+          </div>
+        </div>
+      )}
+
+      {reportModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-full relative">
+            <button
+              onClick={() => setReportModalOpen(false)}
+              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
+            >
+              ✕
+            </button>
+            <iframe
+              src="http://localhost:5000/api/categories/report/preview?preview=true"
+              title="Categories Report Preview"
+              className="w-full h-[calc(100%-4rem)] border-0"
+            ></iframe>
           </div>
         </div>
       )}

@@ -6,7 +6,6 @@ def fetch_categories(sort_by=None, is_ascending=None):
         select category_number, category_name
         from category
     '''
-
     if sort_by is not None and is_ascending is not None:
         direction = 'asc' if is_ascending else 'desc'
         base_query += f' order by {sort_by} {direction}'
@@ -15,7 +14,17 @@ def fetch_categories(sort_by=None, is_ascending=None):
         with conn.cursor() as cur:
             cur.execute(base_query)
             categories = cur.fetchall()
-        return categories
+            if categories:
+                return [
+                    {
+                        "id_category": category[0],
+                        "category_name": category[1]
+                    }
+                    for category in categories
+                ]
+            else:
+                return None
+
 
 
 def fetch_category_by_id(category_id):

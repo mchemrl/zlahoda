@@ -11,22 +11,26 @@ def create_report_blueprint(bp_name, import_name, fetch_func, template_path, fil
     @manager_required
     def preview():
         items = fetch_func()
-        preview_flag = request.args.get('preview', '').lower()
-        show_export = preview_flag in ('1', 'true', 'yes')
         return render_template(
             template_path,
             items=items,
-            show_export=show_export
+            show_export=True,
         )
 
     @bp.route('/pdf', methods=['GET'])
     @manager_required
     def export_pdf():
         items = fetch_func()
-        html = render_template(template_path, items=items)
+        html = render_template(
+            template_path,
+            items=items,
+            show_export=False,
+        )
         return _generate_pdf_response(html, filename)
 
     return bp
+
+
 
 
 def _generate_pdf_response(html, filename):

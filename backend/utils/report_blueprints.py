@@ -10,7 +10,7 @@ category_report = create_report_blueprint(
     bp_name='category_report',
     import_name=__name__,
     fetch_func=fetch_categories,
-    template_path='reports/category_report.html',
+    template_path='reports/category_report.xhtml',
     filename='category_report.pdf'
 )
 

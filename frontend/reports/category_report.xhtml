@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:pdf="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>Categories Report</title>
+  <style type="text/css">
+    /* PDF-specific styling */
+    @page {
+      size: a4 portrait;
+      @frame header_frame {
+        -pdf-frame-content: header_content;
+        left: 50pt; width: 495pt; top: 50pt; height: 40pt;
+      }
+      @frame content_frame {
+        left: 50pt; width: 495pt; top: 100pt; height: 632pt;
+      }
+      @frame footer_frame {
+        -pdf-frame-content: footer_content;
+        left: 50pt; width: 495pt; top: 772pt; height: 20pt;
+      }
+    }
+
+    /* Common styling for both preview and PDF */
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    #header_content {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8pt;
+      border: 1pt solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    #footer_content {
+      text-align: center;
+      font-size: 10pt;
+      color: #777;
+    }
+
+    .export-btn {
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+
+    .export-btn button {
+      padding: 10pt 18pt;
+      font-size: 12pt;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4pt;
+      cursor: pointer;
+    }
+
+    /* Preview-only styling (ignored by PDF renderer) */
+    @media screen {
+      body {
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .page-preview {
+        width: 794px; /* A4 width in pixels at 96 DPI */
+        height: 1123px; /* A4 height in pixels at 96 DPI */
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #header_content {
+        position: absolute;
+        left: 50pt;
+        top: 50pt;
+        width: 495pt;
+        height: 40pt;
+      }
+
+      .content-area {
+        position: absolute;
+        left: 50pt;
+        top: 100pt;
+        width: 495pt;
+        height: 632pt;
+        overflow: auto;
+      }
+
+      #footer_content {
+        position: absolute;
+        left: 50pt;
+        bottom: 50pt;
+        width: 495pt;
+        height: 20pt;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Preview-only wrapper (ignored by PDF renderer) -->
+  <div class="page-preview">
+    <!-- Header content -->
+    <div id="header_content">
+      <h1>Categories Report</h1>
+    </div>
+
+    <!-- Main content -->
+    <div class="content-area">
+      {% if show_export %}
+      <div class="export-btn">
+        <a href="{{ url_for('api.category_report.export_pdf') }}" target="_blank">
+          <button type="button">Export as PDF</button>
+        </a>
+      </div>
+      {% endif %}
+
+      <table>
+        <thead>
+          <tr>
+            <th>Category Number</th>
+            <th>Category Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in items %}
+          <tr>
+            <td>{{ c.id_category }}</td>
+            <td>{{ c.category_name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer content -->
+    <div id="footer_content">
+      Zlahoda report copyright. Page <pdf:pagenumber> of <pdf:pagecount>
+    </div>
+  </div>
+</body>
+</html>

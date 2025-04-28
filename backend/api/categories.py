@@ -16,12 +16,12 @@ def get_categories():
         if not category:
             return jsonify({"error": "category not found"}), 404
         return jsonify({
-            "id": category[0],
+            "id_category": category[0],
             "category_name": category[1]
         })
 
     sort_by = request.args.get('sort_by', type=str)
-    is_ascending = request.args.get('is_ascending', type=int) # expected to be 0, 1 or None
+    is_ascending = request.args.get('is_ascending', type=int)
     if sort_by is not None and is_ascending is not None:
         if sort_by in ['category_number', 'category_name']:
             is_ascending = bool(is_ascending)
@@ -29,13 +29,11 @@ def get_categories():
             return jsonify({"error": "invalid sort category"}), 400
 
     categories_query_res = fetch_categories(sort_by, is_ascending)
-    category_list = list()
-    for row in categories_query_res:
-        category_list.append({
-            "id": row[0],
-            "category_name": row[1]
-        })
-    return jsonify(category_list)
+
+    if categories_query_res:
+        return jsonify(categories_query_res)
+    else:
+        return jsonify([])
 
 
 @categories.route('/', methods=('POST',))
