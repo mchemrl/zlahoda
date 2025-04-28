@@ -246,8 +246,8 @@ export default function StoreProductsPage() {
   const handleAddStoreProduct = () => {
     const payload = {
       id_product: parseInt(newStoreProduct.id),
-      UPC: newStoreProduct.upc.trim(),
-      UPC_prom: newStoreProduct.upc_prom?.trim() || "",
+      upc: newStoreProduct.upc.trim(),
+      upc_prom: newStoreProduct.upc_prom?.trim() || "",
       selling_price: parseFloat(newStoreProduct.selling_price),
       products_number: parseInt(newStoreProduct.products_number),
       promotional_product: Boolean(newStoreProduct.promotional_product),
@@ -256,7 +256,7 @@ export default function StoreProductsPage() {
 
     if (
       !payload.id_product ||
-      !payload.UPC ||
+      !payload.upc ||
       !payload.selling_price ||
       !payload.products_number
     ) {
