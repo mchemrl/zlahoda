@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/header";
+import {
+  handlePrint,
+  usePrintStyles,
+  PrintHeader,
+} from "../utils/print.jsx";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -12,9 +17,8 @@ export default function CategoriesPage() {
     category_name: "",
   });
   const [errorMessage, setErrorMessage] = useState(null);
-  const [reportModalOpen, setReportModalOpen] = useState(false);
   const navigate = useNavigate();
-
+usePrintStyles();
   useEffect(() => {
     if (localStorage.getItem("role") !== "Manager") {
       navigate("/profile");
@@ -160,15 +164,20 @@ export default function CategoriesPage() {
           >
             Sort
           </button>
-          <button
-            onClick={() => setReportModalOpen(true)}
-            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
-          >
-            Make Report
-          </button>
+      {localStorage.getItem("role")=== "Manager" && (
+        <button
+          onClick={handlePrint}
+          className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+        >
+          Print
+        </button>
+      )}
         </div>
 
-        <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <PrintHeader title="Product Report" />
+
+
+        <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea] justify-space-between">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
@@ -198,6 +207,7 @@ export default function CategoriesPage() {
             </tbody>
           </table>
         </div>
+
         {localStorage.getItem("role") === "Manager" && (
           <button
             onClick={() => {
@@ -297,24 +307,6 @@ export default function CategoriesPage() {
             >
               Add Category
             </button>
-          </div>
-        </div>
-      )}
-
-      {reportModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-full relative">
-            <button
-              onClick={() => setReportModalOpen(false)}
-              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
-            >
-              ✕
-            </button>
-            <iframe
-              src="http://localhost:5000/api/categories/report/preview?preview=true"
-              title="Categories Report Preview"
-              className="w-full h-[calc(100%-4rem)] border-0"
-            ></iframe>
           </div>
         </div>
       )}

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import Header from "../components/header";
+import {
+  handlePrint,
+  usePrintStyles,
+  PrintHeader,
+} from "../utils/print.jsx";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -9,13 +13,14 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("All categories");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addProductModalOpen, setAddProductModalOpen] = useState(false);
-  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [newProduct, setNewProduct] = useState({
     product_name: "",
     category_number: categories[0]?.id || "",
     characteristics: "",
   });
+
+  usePrintStyles();
 
   useEffect(() => {
     handleFilter();
@@ -25,6 +30,7 @@ export default function ProductsPage() {
       .then((response) => response.json())
       .then((data) => setCategories(data))
       .catch((error) => console.error("Error fetching categories:", error));
+
   }, [newProduct, selectedProduct]);
 
   const openEditModal = (product) => {
@@ -138,6 +144,7 @@ export default function ProductsPage() {
       .catch((err) => console.error("Error adding product:", err));
   };
 
+
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
@@ -173,19 +180,23 @@ export default function ProductsPage() {
           </select>
           <button
             onClick={handleFilter}
-            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
           >
             Filter
           </button>
-          <button
-            onClick={() => setReportModalOpen(true)}
-            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
-          >
-            Make Report
-          </button>
+      {localStorage.getItem("role")=== "Manager" && (
+        <button
+          onClick={handlePrint}
+          className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+        >
+          Print
+        </button>
+      )}
         </div>
 
-        <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <PrintHeader title="Product Report" />
+
+        <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea] justify-space-between">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
@@ -217,6 +228,7 @@ export default function ProductsPage() {
             </tbody>
           </table>
         </div>
+
         {localStorage.getItem("role") === "Manager" && (
           <button
             onClick={() => {
@@ -227,32 +239,12 @@ export default function ProductsPage() {
                 characteristics: "",
               });
             }}
-            className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+            className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
           >
             Add new product
           </button>
         )}
       </main>
-
-{reportModalOpen && (
-  <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm p-4">
-    <div className="bg-white rounded-2xl shadow-lg p-6 relative max-w-screen-lg w-full">
-      <button
-        onClick={() => setReportModalOpen(false)}
-        className="absolute top-4 right-4 text-[#f57b20] text-xl"
-      >
-        ✕
-      </button>
-      <h2 className="text-2xl mb-4">Products Report Preview</h2>
-      <iframe
-        src="http://localhost:5000/api/products/report/preview?preview=true"
-        title="Products Report Preview"
-        className="w-full h-[80vh] border"
-        style={{ backgroundColor: '#ccc' }}
-      />
-    </div>
-  </div>
-)}
 
       {selectedProduct && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">

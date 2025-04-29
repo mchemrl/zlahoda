@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import Header from "../components/header";
+import {
+  handlePrint,
+  usePrintStyles,
+  PrintHeader,
+} from "../utils/print.jsx";
 
 export default function StoreProductsPage() {
   const [storeProducts, setStoreProducts] = useState([]);
@@ -10,10 +14,8 @@ export default function StoreProductsPage() {
   const [sortBy, setSortBy] = useState("product_name");
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [categories, setCategories] = useState([]);
-  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [promotional, setPromotional] = useState("all");
-  const [addStoreProductModalOpen, setAddStoreProductModalOpen] =
-    useState(false);
+  const [addStoreProductModalOpen, setAddStoreProductModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [newStoreProduct, setNewStoreProduct] = useState({
     upc: "",
@@ -23,6 +25,8 @@ export default function StoreProductsPage() {
     selling_price: "",
     promotional_product: "",
   });
+
+  usePrintStyles();
 
   useEffect(() => {
     fetch("http://localhost:5000/api/categories", {
@@ -305,25 +309,6 @@ export default function StoreProductsPage() {
   return (
     <div className='w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-["Kumbh_Sans"] text-lg font-normal flex flex-col relative'>
       <Header />
-      {/* Report Modal */}
-      {reportModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
-            <button
-              onClick={() => setReportModalOpen(false)}
-              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl mb-4">Products Report Preview</h2>
-            <iframe
-              src="http://localhost:5000/api/store_products/report/preview"
-              title="Store Products Report Preview"
-              className="w-full h-3/4"
-            ></iframe>
-          </div>
-        </div>
-      )}
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
         <div className="w-full flex space-x-6 mb-4">
           <input
@@ -342,12 +327,14 @@ export default function StoreProductsPage() {
           >
             Filter
           </button>
-          <button
-            onClick={() => setReportModalOpen(true)}
-            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
-          >
-            Make Report
-          </button>
+      {localStorage.getItem("role")=== "Manager" && (
+        <button
+          onClick={handlePrint}
+          className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+        >
+          Print
+        </button>
+      )}
         </div>
         <div className="w-full flex space-x-6">
           <select
@@ -389,7 +376,9 @@ export default function StoreProductsPage() {
           </select>
         </div>
 
-        <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <PrintHeader title="Store Product Report" />
+
+        <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea]">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
@@ -429,6 +418,7 @@ export default function StoreProductsPage() {
             </tbody>
           </table>
         </div>
+
         <button
           onClick={() => {
             setAddStoreProductModalOpen(true);
@@ -520,26 +510,6 @@ export default function StoreProductsPage() {
             </div>
           </div>
         )}
-
-      {/* Report Modal */}
-      {reportModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-full relative">
-            <button
-              onClick={() => setReportModalOpen(false)}
-              className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl mb-4">Products Report Preview</h2>
-            <iframe
-              src="http://localhost:5000/api/store_products/report/preview?preview=true"
-              title="Products Report Preview"
-              className="w-full h-3/4"
-            ></iframe>
-          </div>
-        </div>
-      )}
 
       {selectedStoreProduct && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">

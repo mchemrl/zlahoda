@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/header";
+import {
+  handlePrint,
+  usePrintStyles,
+  PrintHeader,
+} from "../utils/print.jsx";
 
 export default function ChecksPage() {
   const [checkNumber, setCheckNumber] = useState("");
@@ -15,9 +20,12 @@ export default function ChecksPage() {
   const [endDate, setEndDate] = useState("");
   const role = localStorage.getItem("role");
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [newReceipt, setNewReceipt] = useState({
     products: [{ id_product: "", product_number: 1 }],
   });
+  usePrintStyles();
 
   useEffect(() => {
     fetch("http://localhost:5000/api/employees?role=Cashier")
@@ -80,6 +88,31 @@ export default function ChecksPage() {
     });
   };
 
+  const handleDelete = () => {
+    if (selectedReceipt) {
+      fetch(
+        `http://localhost:5000/api/receipts/?receipt_id=${selectedReceipt.receipt_number}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      )
+        .then(() => {
+          setDeleteModalOpen(false);
+          setSelectedReceipt(null);
+          handleFilter();
+        })
+        .catch((err) => console.error("Error deleting receipt:", err));
+    }
+  };
+
+  const handleRowClick = (check) => {
+    if (role === "Manager") {
+      setSelectedReceipt(check);
+      setDeleteModalOpen(true);
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
@@ -118,9 +151,18 @@ export default function ChecksPage() {
           >
             Filter
           </button>
+          {localStorage.getItem("role")=== "Manager" && (
+        <button
+          onClick={handlePrint}
+          className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+        >
+          Print
+        </button>
+      )}
         </div>
+        <PrintHeader title="Check Report" />
 
-        <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea]">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
@@ -128,7 +170,6 @@ export default function ChecksPage() {
                 <th className="px-4 py-2">Date</th>
                 <th className="px-4 py-2">Cashier ID</th>
                 <th className="px-4 py-2">Total Sum</th>
-                {role === "Manager" && <th className="px-4 py-2">Delete</th>}
               </tr>
             </thead>
             <tbody>
@@ -142,40 +183,13 @@ export default function ChecksPage() {
                 checks.map((check) => (
                   <tr
                     key={check.receipt_number}
-                    className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center"
+                    className={`border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center ${role === "Manager" ? "cursor-pointer" : ""}`}
+                    onClick={() => handleRowClick(check)}
                   >
                     <td className="px-4 py-2">{check.receipt_number}</td>
                     <td className="px-4 py-2">{check.print_date}</td>
                     <td className="px-4 py-2">{check.id_employee}</td>
                     <td className="px-4 py-2">{check.sum_total}</td>
-                    {role === "Manager" && (
-                      <td>
-                        <button
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                "Ви впевнені, що хочете видалити цей чек?"
-                              )
-                            ) {
-                              fetch(
-                                `http://localhost:5000/api/receipts/?receipt_id=${check.receipt_number}`,
-                                {
-                                  method: "DELETE",
-                                  credentials: "include",
-                                }
-                              )
-                                .then(() => handleFilter())
-                                .catch((err) =>
-                                  console.error("Error deleting receipt:", err)
-                                );
-                            }
-                          }}
-                          className="text-red-600 font-bold cursor-pointer"
-                        >
-                          X
-                        </button>
-                      </td>
-                    )}
                   </tr>
                 ))
               )}
@@ -189,6 +203,32 @@ export default function ChecksPage() {
           Add new receipt
         </button>
       </main>
+
+      {deleteModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-6 max-w-md">
+            <h2 className="text-xl font-bold text-[#f57b20] mb-4">
+              Confirm Delete
+            </h2>
+            <p className="mb-6 text-black">Are you sure you want to delete this receipt?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="border border-[#f57b20] text-[#f57b20] px-4 py-2 rounded hover:bg-[#ffebdb] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c] cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {addModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 max-h-[90vh] overflow-y-auto relative">
