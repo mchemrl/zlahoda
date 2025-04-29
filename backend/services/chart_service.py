@@ -1,6 +1,8 @@
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 from io import BytesIO
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
 
 def generate_revenue_chart(data, title='Top 5 Products by Revenue') -> bytes:
     names = [d['product_name'] for d in data]
@@ -18,6 +20,34 @@ def generate_revenue_chart(data, title='Top 5 Products by Revenue') -> bytes:
     ax.set_xlabel('Product')
     ax.set_ylabel('Revenue')
     ax.set_title(title)
+
+    buf = BytesIO()
+    fig.tight_layout()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    plt.close(fig)
+
+    return buf.getvalue()
+
+
+def generate_average_selling_price_chart(data):
+    names = [d['category_name'] for d in data]
+    prices = [float(d['average_selling_price']) for d in data]
+
+    fig, ax = plt.subplots()
+
+    norm = mpl.colors.Normalize(vmin=min(prices), vmax=max(prices))
+    cmap = plt.get_cmap('plasma')
+    colors = [cmap(norm(price)) for price in prices]
+
+    for idx, (name, price) in enumerate(zip(names, prices)):
+        ax.bar(name, price, color=colors[idx])
+
+    ax.set_xlabel('Category')
+    ax.set_ylabel('Average Selling Price')
+
+    ax.set_xticks(range(len(names)))
+    ax.set_xticklabels(names, rotation=45, ha='right')
 
     buf = BytesIO()
     fig.tight_layout()
