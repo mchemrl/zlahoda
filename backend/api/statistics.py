@@ -17,6 +17,8 @@ def top_products_by_revenue():
 def revenue_chart():
     category = request.args.get('category')
     data = fetch_top_products_by_revenue(category)
+    if not data:
+        return Response("No data to generate chart", status=204)
     png_bytes = generate_revenue_chart(data)
     return Response(png_bytes, mimetype='image/png')
 

@@ -4,7 +4,8 @@ from io import BytesIO
 
 def generate_revenue_chart(data, title='Top 5 Products by Revenue') -> bytes:
     names = [d['product_name'] for d in data]
-    revenues = [d['total_revenue'] for d in data]
+    revenues = [float(d['total_revenue']) for d in data if d['total_revenue'] is not None]
+    print("REVENUES:", revenues)
 
     fig, ax = plt.subplots()
 
