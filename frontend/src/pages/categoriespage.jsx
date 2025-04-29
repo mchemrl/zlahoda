@@ -25,22 +25,23 @@ export default function CategoriesPage() {
   }, [navigate]);
 
   const fetchCategories = (params = {}) => {
-  const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams();
 
-  if (params.category_id) queryParams.append("category_id", params.category_id);  // Add category_id if present
-  if (params.sort_by) queryParams.append("sort_by", params.sort_by);
-  if (params.is_ascending !== undefined)
-    queryParams.append("is_ascending", params.is_ascending ? 1 : 0);
+    if (params.category_id)
+      queryParams.append("category_id", params.category_id); // Add category_id if present
+    if (params.sort_by) queryParams.append("sort_by", params.sort_by);
+    if (params.is_ascending !== undefined)
+      queryParams.append("is_ascending", params.is_ascending ? 1 : 0);
 
-  fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
-    credentials: "include",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      setCategories(data);
+    fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
+      credentials: "include",
     })
-    .catch((error) => console.error("Error fetching categories:", error));
-};
+      .then((response) => response.json())
+      .then((data) => {
+        setCategories(data);
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
+  };
 
   const handleSort = () => {
     fetchCategories({
@@ -144,7 +145,7 @@ export default function CategoriesPage() {
     <div className="w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
-        <div className="w-full flex spacetransitions-x-6 mb-4">
+        <div className="w-full flex spacetransitions-x-6 mb-4 gap-4">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
@@ -210,7 +211,6 @@ export default function CategoriesPage() {
           </button>
         )}
       </main>
-
 
       {selectedCategory && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
