@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/header";
 
@@ -14,6 +14,7 @@ export default function CategoriesPage() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const navigate = useNavigate();
+  const printComponentRef = useRef(null);
 
   useEffect(() => {
     if (localStorage.getItem("role") !== "Manager") {
@@ -24,23 +25,119 @@ export default function CategoriesPage() {
     fetchCategories({});
   }, [navigate]);
 
+  // Add print styles to document head
+  useEffect(() => {
+    // Create print style element
+    const style = document.createElement('style');
+    style.id = 'print-styles';
+    style.innerHTML = `
+      @media print {
+        html, body { margin: 0; padding: 0 !important; }
+        body * {
+          visibility: hidden;
+        }
+        
+        /* Show only the table and its contents */
+        .print-table, .print-table * {
+          visibility: visible;
+          color: black !important;
+        }
+        
+        /* Style the table */
+        .print-table {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          background-color: white !important;
+        }
+        
+        .print-table table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        
+        .print-table th {
+          background-color: #f0f0f0 !important;
+          color: black !important;
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+        }
+        
+        .print-table td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          color: black !important;
+        }
+        
+        /* Header and footer styles */
+        .print-header {
+          visibility: visible;
+          text-align: center;
+          font-size: 24px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid #ccc;
+          color: black !important;
+          position: fixed;
+          top: 0;
+          width: 100%;
+          background: white;
+        }
+        
+        .print-footer {
+          visibility: visible;
+          text-align: center;
+          padding-top: 10px;
+          border-top: 1px solid #ccc;
+          font-size: 12px;
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+          color: white !important;
+          background: white;
+        }
+        
+        /* Add space for header and footer */
+        .print-container {
+          margin-top: 70px;
+          margin-bottom: 50px;
+        }
+      }
+      
+    `;
+
+    // Add style to document head
+    document.head.appendChild(style);
+
+    // Clean up on unmount
+    return () => {
+      const printStyle = document.getElementById('print-styles');
+      if (printStyle) {
+        document.head.removeChild(printStyle);
+      }
+    };
+  }, []);
+
   const fetchCategories = (params = {}) => {
-  const queryParams = new URLSearchParams();
+    const queryParams = new URLSearchParams();
 
-  if (params.category_id) queryParams.append("category_id", params.category_id);  // Add category_id if present
-  if (params.sort_by) queryParams.append("sort_by", params.sort_by);
-  if (params.is_ascending !== undefined)
-    queryParams.append("is_ascending", params.is_ascending ? 1 : 0);
+    if (params.category_id) queryParams.append("category_id", params.category_id);  // Add category_id if present
+    if (params.sort_by) queryParams.append("sort_by", params.sort_by);
+    if (params.is_ascending !== undefined)
+      queryParams.append("is_ascending", params.is_ascending ? 1 : 0);
 
-  fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
-    credentials: "include",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      setCategories(data);
+    fetch(`http://localhost:5000/api/categories?${queryParams.toString()}`, {
+      credentials: "include",
     })
-    .catch((error) => console.error("Error fetching categories:", error));
-};
+      .then((response) => response.json())
+      .then((data) => {
+        setCategories(data);
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
+  };
 
   const handleSort = () => {
     fetchCategories({
@@ -140,6 +237,51 @@ export default function CategoriesPage() {
       });
   };
 
+  const handlePrint = () => {
+    // Get current date for header/footer
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString();
+    const formattedTime = today.toLocaleTimeString();
+
+    // Create print elements if they don't exist
+    let printHeader = document.getElementById('print-header');
+    let printFooter = document.getElementById('print-footer');
+
+    if (!printHeader) {
+      printHeader = document.createElement('div');
+      printHeader.id = 'print-header';
+      printHeader.className = 'print-header';
+      document.body.appendChild(printHeader);
+    }
+
+    if (!printFooter) {
+      printFooter = document.createElement('div');
+      printFooter.id = 'print-footer';
+      printFooter.className = 'print-footer';
+      document.body.appendChild(printFooter);
+    }
+
+    // Set content for header and footer
+    printHeader.innerHTML = `Categories Report - ${formattedDate}`;
+    printFooter.innerHTML = `Generated on ${formattedDate} - ${formattedTime}`;
+
+    // Add print-table class to the table container for styling
+    const tableContainer = document.querySelector('.w-full.bg-\\[\\#f57b20\\]');
+    if (tableContainer) {
+      tableContainer.classList.add('print-table');
+    }
+
+    // Trigger print
+    window.print();
+
+    // Remove print classes after printing (slight delay to ensure printing completes)
+    setTimeout(() => {
+      if (tableContainer) {
+        tableContainer.classList.remove('print-table');
+      }
+    }, 500);
+  };
+
   return (
     <div className="w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
@@ -165,9 +307,15 @@ export default function CategoriesPage() {
           >
             Make Report
           </button>
+          <button
+            onClick={handlePrint}
+            className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+          >
+            Print
+          </button>
         </div>
 
-        <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto print-container">
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea] justify-space-between">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
@@ -210,7 +358,6 @@ export default function CategoriesPage() {
           </button>
         )}
       </main>
-
 
       {selectedCategory && localStorage.getItem("role") === "Manager" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">

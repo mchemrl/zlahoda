@@ -2,7 +2,7 @@
 <html xmlns:pdf="">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <title>Categories Report</title>
+  <title>Store Products Report</title>
   <style type="text/css">
     @page {
       size: a4 portrait;
@@ -151,37 +151,45 @@
 <body>
   <div class="page-preview">
     <div id="header_content">
-      <h1>Categories Report</h1>
+      <h1>Store Products Report</h1>
     </div>
 
     <div class="content-area">
       {% if show_export %}
       <div class="export-btn">
-        <a href="{{ url_for('api.category_report.export_pdf') }}" target="_blank">
+        <a href="{{ url_for('api.store_product_report.export_pdf') }}" target="_blank">
           <button type="button">Export as PDF</button>
         </a>
       </div>
       {% endif %}
 
       <table>
-        <thead>
-          <tr>
-            <th>Category Number</th>
-            <th>Category Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for c in items %}
-          <tr>
-            <td>{{ c.id_category }}</td>
-            <td>{{ c.category_name }}</td>
-          </tr>
-          {% endfor %}
+            <thead>
+              <tr>
+                <th width="60">UPC</th>
+      <th width="80">Promo UPC</th>
+      <th width="180">Product Name</th>
+      <th width="60">Price</th>
+      <th width="60">Quantity</th>
+      <th width="55">Promo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in items %}
+                <tr>
+                  <td>{{ p.upc }}</td>
+                  <td>{{ p.upc_prom }}</td>
+                  <td>{{ p.product_name }}</td>
+                  <td>{{ p.selling_price }}</td>
+                  <td>{{ p.products_number }}</td>
+                  <td>{{ p.promotional_product }}</td>
+                </tr>
+              {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <div id="footer_content">
+ <div id="footer_content">
       Zlahoda report copyright. Page <span class="preview-page-number"></span><pdf:pagenumber> of <pdf:pagecount>
     </div>
   </div>

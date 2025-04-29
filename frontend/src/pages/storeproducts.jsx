@@ -524,7 +524,7 @@ export default function StoreProductsPage() {
       {/* Report Modal */}
       {reportModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-3/4 relative">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-3/4 h-full relative">
             <button
               onClick={() => setReportModalOpen(false)}
               className="absolute top-4 right-4 text-[#f57b20] cursor-pointer"

@@ -50,6 +50,6 @@ store_product_report = create_report_blueprint(
     bp_name='store_product_report',
     import_name=__name__,
     fetch_func=fetch_store_products,
-    template_path='reports/store_product_report.html',
+    template_path='reports/store_product_report.xhtml',
     filename='store_product_report.pdf'
 )
