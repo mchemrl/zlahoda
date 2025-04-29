@@ -5,6 +5,7 @@ import Header from "../components/header";
 export default function ChecksPage() {
   const [checkNumber, setCheckNumber] = useState("");
   const [sortOrder, setSortOrder] = useState("Ascending");
+  const [error, setError] = useState("");
   const [errors, setErrors] = useState([]);
   const [products, setProducts] = useState([]);
   const [checks, setChecks] = useState([]);
@@ -15,7 +16,7 @@ export default function ChecksPage() {
   const role = localStorage.getItem("role");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newReceipt, setNewReceipt] = useState({
-    items: [{ id_product: "", quantity: 1 }],
+    products: [{ id_product: "", product_number: 1 }],
   });
 
   useEffect(() => {
@@ -23,6 +24,20 @@ export default function ChecksPage() {
       .then((res) => res.json())
       .then((data) => setCashiers(data))
       .catch((err) => console.error("Error fetching cashiers:", err));
+
+    fetch("http://localhost:5000/api/employees/me", {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        newReceipt.id_employee = data.id_employee;
+        console.log(newReceipt);
+      })
+      .catch((error) => {
+        console.error("Error fetching user:", error);
+        setError(error.message);
+      });
 
     fetchProducts();
     handleFilter();
@@ -193,22 +208,61 @@ export default function ChecksPage() {
                 ))}
               </div>
             )}
+            <input
+              type="text"
+              placeholder="Receipt id"
+              onChange={(e) => {
+                setNewReceipt({
+                  ...newReceipt,
+                  receipt_number: e.target.value,
+                });
+              }}
+              className="border border-[#f57b20] rounded p-2 w-full bg-[#fff3ea] text-[#f57b20] mb-4"
+            />
+            <input
+              type="date"
+              onChange={(e) => {
+                setNewReceipt({ ...newReceipt, print_date: e.target.value });
+              }}
+              className="border border-[#f57b20] rounded p-2 w-full bg-[#fff3ea] text-[#f57b20] mb-4"
+            />
+            <input
+              type="text"
+              min="1"
+              placeholder="Customer card"
+              onChange={(e) => {
+                setNewReceipt({ ...newReceipt, customer_card: e.target.value });
+              }}
+              className="w-full mb-6 border p-2 rounded border-[#f57b20] text-[#f57b20]"
+            />
 
-            {newReceipt.items.map((item, index) => (
-              <div key={index} className="flex gap-2 items-center mb-2">
+            {newReceipt.products.map((item, index) => (
+              <div key={index} className="flex gap-2 items-center mb-4">
                 <select
-                  value={item.UPC}
+                  value={item.upc}
                   onChange={(e) => {
-                    const updated = [...newReceipt.items];
-                    updated[index].UPC = e.target.value;
-                    setNewReceipt({ ...newReceipt, items: updated });
+                    const selectedUPC = e.target.value;
+                    const selectedProduct = products.find(
+                      (prod) => prod.upc === selectedUPC
+                    );
+                    const updated = [...newReceipt.products];
+
+                    updated[index] = {
+                      ...updated[index],
+                      upc: selectedProduct.upc,
+                      is_promo: selectedProduct.promotional_product,
+                    };
+
+                    setNewReceipt({ ...newReceipt, products: updated });
                   }}
                   className="w-full border p-2 rounded border-[#f57b20] text-[#f57b20]"
                 >
                   <option value="">Select product</option>
                   {products.map((prod) => (
-                    <option key={prod.UPC} value={prod.UPC}>
+                    <option key={prod.upc} value={prod.upc}>
                       {prod.product_name}
+                      {prod.promotional_product ? " (Promo)" : ""}
+                      {` ${prod.products_number} in stock`}
                     </option>
                   ))}
                 </select>
@@ -216,23 +270,24 @@ export default function ChecksPage() {
                 <input
                   type="number"
                   min="1"
-                  placeholder="Кількість"
-                  value={item.quantity}
+                  placeholder="Quantity"
+                  value={item.product_number}
                   onChange={(e) => {
-                    const updated = [...newReceipt.items];
-                    updated[index].quantity = Number(e.target.value);
-                    setNewReceipt({ ...newReceipt, items: updated });
+                    const updated = [...newReceipt.products];
+                    updated[index].product_number = Number(e.target.value);
+                    setNewReceipt({ ...newReceipt, products: updated });
                   }}
-                  className="border border-[#f57b20] rounded-md px-3 py-1 bg-white text-[#333]"
+                  className="border border-[#f57b20] border p-2 rounded border-[#f57b20] text-[#f57b20]"
                 />
+
                 <button
                   onClick={() => {
-                    const updated = newReceipt.items.filter(
+                    const updated = newReceipt.products.filter(
                       (_, i) => i !== index
                     );
-                    setNewReceipt({ ...newReceipt, items: updated });
+                    setNewReceipt({ ...newReceipt, products: updated });
                   }}
-                  className="text-red-600 font-bold"
+                  className="text-red-600 font-bold cursor-pointer"
                 >
                   X
                 </button>
@@ -242,10 +297,13 @@ export default function ChecksPage() {
               onClick={() =>
                 setNewReceipt({
                   ...newReceipt,
-                  items: [...newReceipt.items, { id_product: "", quantity: 1 }],
+                  products: [
+                    ...newReceipt.products,
+                    { id_product: "", product_number: 1 },
+                  ],
                 })
               }
-              className="text-[#f57b20] underline mb-4"
+              className="text-[#f57b20] underline mb-4 cursor-pointer"
             >
               + Add another good
             </button>
@@ -253,8 +311,9 @@ export default function ChecksPage() {
             <div className="flex justify-between">
               <button
                 onClick={() => {
+                  console.log(newReceipt);
                   setErrors([]);
-                  fetch("http://localhost:5000/api/receipts", {
+                  fetch("http://localhost:5000/api/receipts/", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -273,6 +332,9 @@ export default function ChecksPage() {
                         return;
                       }
                       setAddModalOpen(false);
+                      setNewReceipt({
+                        products: [{ id_product: "", product_number: 1 }],
+                      });
                       handleFilter();
                     })
                     .catch((err) => {
@@ -280,7 +342,7 @@ export default function ChecksPage() {
                       console.error("Error adding receipt:", err);
                     });
                 }}
-                className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c]"
+                className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c] cursor-pointer"
               >
                 Save
               </button>
