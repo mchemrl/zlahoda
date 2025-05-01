@@ -88,18 +88,19 @@ def fetch_customers_not_from_category_not_from_cashier(category_id):
     query = """
     SELECT cc.card_number, cc.cust_surname, cc.cust_name
     FROM customer_card cc
-    WHERE cc.card_number NOT IN (
-        SELECT DISTINCT r.card_number
-        FROM receipt r
+    WHERE NOT EXISTS (
+        SELECT 1 FROM receipt r
         JOIN sale s ON r.receipt_number = s.receipt_number
         JOIN store_product sp ON s.UPC = sp.UPC
         JOIN product p ON sp.id_product = p.id_product
-        WHERE p.category_number = %s AND r.card_number IS NOT NULL
+        WHERE p.category_number = %s 
+            AND r.card_number = cc.card_number
     )
-    AND cc.card_number NOT IN (
-        SELECT DISTINCT r.card_number
+    AND NOT EXISTS (
+        SELECT 1
         FROM receipt r
         WHERE r.id_employee = 'E000'
+            AND r.card_number = cc.card_number
     )
     """
     with get_connection() as conn:
