@@ -195,11 +195,11 @@ usePrintStyles();
               ) : (
                 categories.map((category) => (
                   <tr
-                    key={category.id_category}
+                    key={category.id}
                     className="border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center cursor-pointer"
                     onDoubleClick={() => openEditModal(category)}
                   >
-                    <td className="px-4 py-2">{category.id_category}</td>
+                    <td className="px-4 py-2">{category.id}</td>
                     <td className="px-4 py-2">{category.category_name}</td>
                   </tr>
                 ))
