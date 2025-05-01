@@ -1,6 +1,6 @@
-import psycopg2
-from flask import Blueprint, request, jsonify
-
+from flask import Blueprint, jsonify, request
+from psycopg2 import IntegrityError
+from psycopg2.errors import ForeignKeyViolation
 from backend.utils.decorators import manager_required, login_required
 from ..services.products_service import fetch_products, fetch_product, edit_product, dump_product, create_product
 
@@ -25,7 +25,7 @@ def get_products():
     return jsonify(products)
 
 @products.route('/', methods=('POST',))
-#   @manager_required
+@manager_required
 def add_product():
     data = request.json
     category_number = data.get('category_number')
@@ -62,7 +62,7 @@ def add_product():
 def delete_product():
     id_product = request.args.get('id_product', type=int)
     if not id_product:
-        return jsonify({'error': 'missing id_fsfsproduct'}), 400
+        return jsonify({'error': 'missing id_product'}), 400
 
     product = fetch_product(id_product)
     if not product:
@@ -71,13 +71,22 @@ def delete_product():
     try:
         dump_product(id_product)
         return jsonify({'message': 'product deleted!'}), 200
-    except psycopg2.IntegrityError as e:
-        if 'foreign key constraint' in str(e).lower():
-            return jsonify({'error': 'cannot delete product because it has associated store products'}), 400
-        else:
-            return jsonify({'error': 'database error: ' + str(e)}), 500
 
-    return jsonify({'message': 'product deleted!'}), 200
+    except ForeignKeyViolation:
+        return jsonify({
+            'error': 'cannot delete product because it has associated store products'
+        }), 400
+
+    except IntegrityError as e:
+        return jsonify({
+            'error': 'database integrity error: ' + str(e)
+        }), 500
+
+    except Exception as e:
+        return jsonify({
+            'error': 'unexpected error: ' + str(e)
+        }), 500
+
 
 @products.route('/', methods=['PUT'])
 @manager_required

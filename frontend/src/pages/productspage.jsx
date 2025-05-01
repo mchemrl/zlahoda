@@ -13,6 +13,7 @@ export default function ProductsPage() {
   const [category, setCategory] = useState("All categories");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [errorModal, setErrorModal] = useState({ open: false, message: "" });
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [newProduct, setNewProduct] = useState({
     product_name: "",
@@ -111,13 +112,20 @@ export default function ProductsPage() {
         credentials: "include",
       }
     )
-      .then(() => {
-        setProducts((prevProducts) =>
-          prevProducts.filter((p) => p.id !== selectedProduct.id)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          setErrorModal({ open: true, message: data.error });
+         return;
+        }
+        setProducts((prev) =>
+          prev.filter((p) => p.id !== selectedProduct.id)
         );
         closeEditModal();
       })
-      .catch((error) => console.error("Error deleting product:", error));
+      .catch((err) => {
+        console.error("Error deleting product:", err);
+      });
   };
 
   const handleAddProduct = () => {
@@ -148,7 +156,22 @@ export default function ProductsPage() {
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
-
+    {errorModal.open && (
+  <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-opacity-0 z-50">
+         <div className="bg-white rounded-lg p-6 w-80 text-center shadow-lg">
+            <h3 className="text-xl font-semibold mb-4 text-red-600">
+              You can't delete a product that is associated with store product
+            </h3>
+            <p className="mb-6">{errorModal.message}</p>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+              onClick={() => setErrorModal({ open: false, message: "" })}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
         <div className="w-full flex space-x-6">
           <input

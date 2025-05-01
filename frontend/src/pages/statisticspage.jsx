@@ -115,7 +115,7 @@ export default function StatisticsPage() {
                   >
                     <option value="">All</option>
                     {categories.map((cat) => (
-                      <option key={cat.id_category} value={cat.id_category}>
+                      <option key={cat.id} value={cat.id}>
                         {cat.category_name}
                       </option>
                     ))}
