@@ -115,3 +115,68 @@ def fetch_customers_not_from_category_not_from_cashier(category_id):
         }
         for row in products
     ]
+
+from backend.utils.db import get_connection
+
+def fetch_cashiers_with_min_receipts(min_receipts=None):
+    query = """
+        SELECT
+            e.id_employee,
+            e.empl_surname || ' ' || e.empl_name || ' ' || e.empl_patronymic AS full_name,
+            COUNT(DISTINCT r.receipt_number) AS receipt_count,
+            SUM(s.selling_price * s.product_number) AS total_sales
+        FROM employee e
+        JOIN receipt r ON e.id_employee = r.id_employee
+        JOIN sale s ON r.receipt_number = s.receipt_number
+        GROUP BY e.id_employee, full_name
+        HAVING COUNT(DISTINCT r.receipt_number) >= COALESCE(%s, 0)
+        ORDER BY total_sales DESC
+    """
+
+    params = (min_receipts,)
+    
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, params)
+            rows = cur.fetchall()
+    return [
+        {
+            "id_employee": row[0],
+            "full_name": row[1],
+            "receipt_count": row[2],
+            "total_sales": float(row[3])
+        }
+        for row in rows
+    ]
+
+def fetch_unpopular_products_for_non_loyal_clients():
+    query = """
+        SELECT DISTINCT p.id_product, p.product_name, c.category_name
+        FROM product p
+        JOIN store_product sp ON p.id_product = sp.id_product
+        LEFT JOIN category c ON p.category_number = c.category_number
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM sale s
+            JOIN receipt ch ON s.receipt_number = ch.receipt_number
+            WHERE s.UPC = sp.UPC
+            AND (
+                ch.card_number IS NULL
+                OR ch.card_number NOT IN (
+                    SELECT card_number FROM customer_card
+                )
+            )
+        );
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+    return [
+        {
+            "id_product": row[0],
+            "product_name": row[1],
+            "category": row[2]
+        }
+        for row in rows
+    ]

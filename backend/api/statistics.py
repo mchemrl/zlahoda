@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, Response
 from backend.services.statistics_service import fetch_top_products_by_revenue, fetch_products_not_purchased_within_date, \
-    fetch_categories_by_revenue_with_min_price_of_product, fetch_customers_not_from_category_not_from_cashier
-from backend.services.chart_service import generate_revenue_chart, generate_average_selling_price_chart
+    fetch_categories_by_revenue_with_min_price_of_product, fetch_customers_not_from_category_not_from_cashier, fetch_cashiers_with_min_receipts, fetch_unpopular_products_for_non_loyal_clients
+from backend.services.chart_service import generate_revenue_chart, generate_average_selling_price_chart, generate_cashier_revenue_chart
 from decimal import Decimal
 
 statistics = Blueprint('statistics', __name__)
@@ -86,3 +86,38 @@ def customers_not_from_category_not_from_cashier():
         return jsonify(customers)
     else:
         return jsonify({'error': 'No data found'})
+
+@statistics.route('/cashiers_by_receipts', methods=['GET'])
+def cashiers_by_receipts():
+    min_receipts = request.args.get('min_receipts', type=int)
+    data = fetch_cashiers_with_min_receipts(min_receipts)
+    if data:
+        return jsonify(data)
+    else:
+        return jsonify({'error': 'No cashiers found with this minimum receipt count.'})
+
+@statistics.route('/chart_cashiers_by_receipts', methods=['GET'])
+def chart_cashiers_by_receipts():
+    min_receipts = request.args.get('min_receipts', type=int)
+    data = fetch_cashiers_with_min_receipts(min_receipts)
+    if not data:
+        return Response("No data to generate chart", status=204)
+    png_bytes = generate_cashier_revenue_chart(data)
+    return Response(png_bytes, mimetype='image/png')
+
+@statistics.route('/unpopular_loyalty_products', methods=['GET'])
+def unpopular_products_for_loyal_clients():
+    data = fetch_unpopular_products_for_non_loyal_clients()
+    if data:
+        return jsonify(data)
+    else:
+        return jsonify({'error': 'All products have been bought by non-loyal customers.'})
+
+
+@statistics.route('/chart_unpopular_loyalty_products', methods=['GET'])
+def chart_unpopular_loyalty_products():
+    data = fetch_unpopular_products_for_non_loyal_clients()
+    if not data:
+        return Response("No data to generate chart", status=204)
+    png_bytes = generate_unpopular_loyalty_products_chart(data)
+    return Response(png_bytes, mimetype='image/png')
