@@ -213,7 +213,9 @@ export default function ChecksPage() {
             <p className="mb-6 text-black">Are you sure you want to delete this receipt?</p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={() => setDeleteModalOpen(false)}
+                onClick={() => {setDeleteModalOpen(false);
+                                     setSelectedReceipt(null);
+                }}
                 className="border border-[#f57b20] text-[#f57b20] px-4 py-2 rounded hover:bg-[#ffebdb] cursor-pointer"
               >
                 Cancel
