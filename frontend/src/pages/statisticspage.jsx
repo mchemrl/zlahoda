@@ -142,6 +142,7 @@ export default function StatisticsPage() {
         setTotalRevenueByCategoriesMinPrice("");
         setErrorTotalByCat(null);
         setLoadingTotalByCat(false);
+        setTotalRevenueByCatChart("")
 
         setCustomers([]);
         setNotCategory("");
