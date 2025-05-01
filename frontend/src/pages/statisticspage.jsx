@@ -430,8 +430,8 @@ export default function StatisticsPage() {
                                     <tr key={`${p.card_number}`}
                                         className="border-b border-[#fff3ea] hover:bg-[#db6c1c]">
                                         <td className="px-4 py-2 text-white">{p.card_number}</td>
-                                        <td className="px-4 py-2 text-white">{p.customer_surname}</td>
-                                        <td className="px-4 py-2 text-white">{p.customer_name}</td>
+                                        <td className="px-4 py-2 text-white">{p.cust_surname}</td>
+                                        <td className="px-4 py-2 text-white">{p.cust_name}</td>
                                     </tr>
                                 ))}
                                 </tbody>
