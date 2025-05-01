@@ -32,7 +32,7 @@ def generate_revenue_chart(data, title='Top 5 Products by Revenue') -> bytes:
 
 def generate_average_selling_price_chart(data):
     names = [d['category_name'] for d in data]
-    prices = [float(d['average_selling_price']) for d in data]
+    prices = [float(d['total_revenue']) for d in data]
 
     fig, ax = plt.subplots()
 
@@ -44,7 +44,7 @@ def generate_average_selling_price_chart(data):
         ax.bar(name, price, color=colors[idx])
 
     ax.set_xlabel('Category')
-    ax.set_ylabel('Average Selling Price')
+    ax.set_ylabel('Total Revenue')
 
     ax.set_xticks(range(len(names)))
     ax.set_xticklabels(names, rotation=45, ha='right')

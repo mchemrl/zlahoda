@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, Response
 from backend.services.statistics_service import fetch_top_products_by_revenue, fetch_products_not_purchased_within_date, \
-    fetch_unsold_products_from_not_category_in_period_of_time, fetch_average_selling_price_by_categories
+    fetch_categories_by_revenue_with_min_price_of_product, fetch_customers_not_from_category_not_from_cashier
 from backend.services.chart_service import generate_revenue_chart, generate_average_selling_price_chart
-from datetime import datetime
+from decimal import Decimal
 
 statistics = Blueprint('statistics', __name__)
 
@@ -37,43 +37,50 @@ def products_not_purchased_within_date():
         return jsonify({'error': 'No data for this time range.'})
 
 
-@statistics.route('/average_selling_price_by_categories', methods=['GET'])
-def average_selling_price_by_categories():
-    categories = fetch_average_selling_price_by_categories()
+@statistics.route('/categories_by_revenue_with_min_price_of_product', methods=['GET'])
+def categories_by_revenue_with_min_price_of_product():
+    min_price = request.args.get('min_price')
+    if min_price is None:
+        return jsonify({'error': 'You must choose a minimum price'}), 400
+    try:
+        min_price = Decimal(min_price)
+    except ValueError:
+        return jsonify({'error': 'Invalid min_price'}), 400
+    if min_price <= 0:
+        return jsonify({'error': 'Minimum price must be greater than 0'}), 400
+
+    categories = fetch_categories_by_revenue_with_min_price_of_product(min_price)
     if categories:
         return jsonify(categories)
     else:
         return jsonify({'error': 'No data found'})
 
 
-@statistics.route('/average_selling_price_by_categories_chart', methods=['GET'])
-def average_selling_price_by_categories_chart():
-    data = fetch_average_selling_price_by_categories()
+@statistics.route('/categories_by_revenue_with_min_price_of_product_chart', methods=['GET'])
+def categories_by_revenue_with_min_price_of_product_chart():
+    min_price = request.args.get('min_price')
+    if min_price is None:
+        return jsonify({'error': 'You must choose a minimum price'}), 400
+    try:
+        min_price = Decimal(min_price)
+    except ValueError:
+        return jsonify({'error': 'Invalid min_price'}), 400
+    if min_price <= 0:
+        return jsonify({'error': 'Minimum price must be greater than 0'}), 400
+    data = fetch_categories_by_revenue_with_min_price_of_product(min_price)
     png_bytes = generate_average_selling_price_chart(data)
     return Response(png_bytes, mimetype='image/png')
 
 
-@statistics.route('/unsold_products_from_not_category_in_period_of_time', methods=['GET'])
-def unsold_products_from_not_category_in_period_of_time():
+@statistics.route('/customers_not_from_category_not_from_cashier', methods=['GET'])
+def customers_not_from_category_not_from_cashier():
     category_id = request.args.get('category_id')
+
     if category_id is None:
         return jsonify({'error': 'You must choose a category'}), 400
 
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    if start_date is None or end_date is None:
-        return jsonify({'error': 'You must choose a start and end date'}), 400
-    try:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.strptime(end_date, '%Y-%m-%d')
-    except ValueError:
-        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
-
-    if start_date > end_date:
-        return jsonify({'error': 'Start date must be before end date'}), 400
-
-    unsold_products = fetch_unsold_products_from_not_category_in_period_of_time(category_id, start_date, end_date)
-    if unsold_products:
-        return jsonify(unsold_products)
+    customers = fetch_customers_not_from_category_not_from_cashier(category_id)
+    if customers:
+        return jsonify(customers)
     else:
-        return jsonify({'error': 'No data for this time range.'})
+        return jsonify({'error': 'No data found'})

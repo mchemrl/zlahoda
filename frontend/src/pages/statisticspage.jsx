@@ -14,16 +14,16 @@ export default function StatisticsPage() {
     const [loadingNP, setLoadingNP] = useState(false);
     const [errorNP, setErrorNP] = useState(null);
 
-    const [avgSellingPrice, setAvgSellingPrice] = useState([]);
-    const [loadingAvgPrice, setLoadingAvgPrice] = useState(false);
-    const [errorAvgPrice, setErrorAvgPrice] = useState(null);
+    const [totalByCat, setTotalByCat] = useState([]);
+    const [totalRevenueByCategoriesMinPrice, setTotalRevenueByCategoriesMinPrice] = useState("");
+    const [totalRevenueByCatChart, setTotalRevenueByCatChart] = useState("");
+    const [loadingTotalByCat, setLoadingTotalByCat] = useState(false);
+    const [errorTotalByCat, setErrorTotalByCat] = useState(null);
 
-    const [unsoldProducts, setUnsoldProducts] = useState([]);
-    const [unsoldStartDate, setUnsoldStartDate] = useState("");
-    const [unsoldEndDate, setUnsoldEndDate] = useState("");
-    const [unsoldCategoryId, setUnsoldCategoryId] = useState("");
-    const [loadingUnsold, setLoadingUnsold] = useState(false);
-    const [errorUnsold, setErrorUnsold] = useState(null);
+    const [customers, setCustomers] = useState([]);
+    const [notCategory, setNotCategory] = useState([]);
+    const [loadingCustomers, setLoadingCustomers] = useState(false);
+    const [errorCustomers, setErrorCustomers] = useState(null);
 
     useEffect(() => {
         fetch("http://127.0.0.1:5000/api/categories")
@@ -54,11 +54,6 @@ export default function StatisticsPage() {
             .finally(() => setLoading(false));
     }, [selectedOption, selectedCategory]);
 
-    useEffect(() => {
-        if (selectedOption !== "average-selling-price") return;
-        fetchAvgSellingPrice();
-    }, [selectedOption]);
-
     const fetchNotPurchased = () => {
         if (!printDate) return;
         setLoadingNP(true);
@@ -78,54 +73,57 @@ export default function StatisticsPage() {
             .finally(() => setLoadingNP(false));
     };
 
-    const fetchAvgSellingPrice = () => {
-        setLoadingAvgPrice(true);
-        setErrorAvgPrice(null);
-        fetch("http://127.0.0.1:5000/api/statistics/average_selling_price_by_categories")
+    const fetchTotalByCat = () => {
+        if (!totalRevenueByCategoriesMinPrice || totalRevenueByCategoriesMinPrice === "") {
+            setLoadingTotalByCat(false);
+            setTotalByCat([]);
+            setErrorTotalByCat("Please enter minimum price");
+            return;
+        }
+
+        setLoadingTotalByCat(true);
+        setErrorTotalByCat(null);
+        const newChart = `http://127.0.0.1:5000/api/statistics/categories_by_revenue_with_min_price_of_product_chart?min_price=${totalRevenueByCategoriesMinPrice}`
+        setTotalRevenueByCatChart(newChart);
+
+        fetch(`http://127.0.0.1:5000/api/statistics/categories_by_revenue_with_min_price_of_product?min_price=${totalRevenueByCategoriesMinPrice}`)
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    setErrorAvgPrice(data.error);
-                    setAvgSellingPrice([]);
+                    setErrorTotalByCat(data.error);
+                    setTotalByCat([]);
                 } else {
-                    setAvgSellingPrice(data);
+                    setTotalByCat(data);
                 }
             })
-            .catch(() => setErrorAvgPrice("Failed to fetch data 🙁"))
-            .finally(() => setLoadingAvgPrice(false));
+            .catch(() => setErrorTotalByCat("Failed to fetch data 🙁"))
+            .finally(() => {
+                setLoadingTotalByCat(false);
+            });
     };
 
-    const average_selling_price_by_categories_chart = "http://127.0.0.1:5000/api/statistics/average_selling_price_by_categories_chart";
-
-    const fetchUnsoldProducts = () => {
-        if (!unsoldCategoryId || unsoldCategoryId === "") {
-            setLoadingUnsold(false);
-            setUnsoldProducts([]);
-            setErrorUnsold("Please select a category before fetching data");
+    const fetchCustomers = () => {
+        if (!notCategory || notCategory === "") {
+            setErrorCustomers(false);
+            setCustomers([]);
+            setErrorCustomers("Please choose a category");
             return;
         }
 
-        if (!unsoldStartDate || !unsoldEndDate) {
-            setLoadingUnsold(false);
-            setUnsoldProducts([]);
-            setErrorUnsold("Please select both start and end valid dates");
-            return;
-        }
-
-        setLoadingUnsold(true);
-        setErrorUnsold(null);
-        fetch(`http://127.0.0.1:5000/api/statistics/unsold_products_from_not_category_in_period_of_time?category_id=${unsoldCategoryId}&start_date=${unsoldStartDate}&end_date=${unsoldEndDate}`)
+        setLoadingCustomers(true);
+        setErrorCustomers(null);
+        fetch(`http://127.0.0.1:5000/api/statistics/customers_not_from_category_not_from_cashier?category_id=${notCategory}`)
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    setErrorUnsold(data.error);
-                    setUnsoldProducts([]);
+                    setErrorCustomers(data.error);
+                    setCustomers([]);
                 } else {
-                    setUnsoldProducts(data);
+                    setCustomers(data);
                 }
             })
-            .catch(() => setErrorUnsold("Failed to fetch data 🙁"))
-            .finally(() => setLoadingUnsold(false));
+            .catch(() => setErrorCustomers("Failed to fetch data 🙁"))
+            .finally(() => setLoadingCustomers(false));
     };
 
     const handleTabChange = key => {
@@ -139,16 +137,12 @@ export default function StatisticsPage() {
         setLoadingNP(false);
         setPrintDate("");
 
-        setAvgSellingPrice([]);
-        setErrorAvgPrice(null);
-        setLoadingAvgPrice(false);
+        setTotalByCat([]);
+        setTotalRevenueByCategoriesMinPrice("");
+        setErrorTotalByCat(null);
+        setLoadingTotalByCat(false);
 
-        setUnsoldProducts([]);
-        setErrorUnsold(null);
-        setLoadingUnsold(false);
-        setUnsoldStartDate("");
-        setUnsoldEndDate("");
-        setUnsoldCategoryId("");
+
     };
 
     const chartUrl = selectedCategory
@@ -165,8 +159,8 @@ export default function StatisticsPage() {
                         {key: 'top-products', label: 'Top Products'},
                         {key: 'sales-trends', label: 'Sales Trends'},
                         {key: 'region-revenue', label: 'Region Revenue'},
-                        {key: 'average-selling-price', label: 'Average Selling Price'},
-                        {key: 'unsold-products', label: 'Unsold Products'},
+                        {key: 'total-revenue-by-categories', label: 'Total Revenue By Categories'},
+                        {key: 'customers', label: 'Customers'},
                     ].map(opt => (
                         <button
                             key={opt.key}
@@ -283,81 +277,84 @@ export default function StatisticsPage() {
                     </>
                 )}
 
-                {selectedOption === 'average-selling-price' && (
+
+                {selectedOption === 'total-revenue-by-categories' && (
                     <div className="flex w-full gap-8">
-                        <div className="w-2/5 bg-white p-4 shadow-lg rounded-lg h-full overflow-auto">
-                            <h2 className="text-xl font-semibold mb-4 text-black">Average Selling Price by
-                                Categories</h2>
+                        <div className="w-3/5 bg-white p-4 shadow-lg rounded-lg h-full overflow-auto">
+                            <h2 className="text-xl font-semibold mb-4 text-black">Categories By Total Revenue</h2>
+                            <div className="flex items-center mb-4 gap-4">
+                                <input
+                                    value={totalRevenueByCategoriesMinPrice}
+                                    onChange={e => setTotalRevenueByCategoriesMinPrice(e.target.value)}
+                                    className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
+                                    placeholder="Product Min Price"
+                                />
+                                <button
+                                    onClick={fetchTotalByCat}
+                                    className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c]"
+                                >Fetch
+                                </button>
+                            </div>
                             <div className="w-full bg-[#f57b20] rounded-md overflow-hidden">
                                 <table className="w-full table-auto bg-[#f57b20] text-[#fff3ea]">
                                     <thead>
                                     <tr className="bg-[#db6c1c] sticky top-0">
                                         <th className="px-4 py-2 text-left">Category</th>
-                                        <th className="px-4 py-2 text-left">Average Price</th>
+                                        <th className="px-4 py-2 text-left">Total Revenue</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {loadingAvgPrice && <tr>
+                                    {loadingTotalByCat && <tr>
                                         <td colSpan="2" className="py-4 text-center">Loading...</td>
                                     </tr>}
-                                    {errorAvgPrice && <tr>
-                                        <td colSpan="2" className="py-4 text-center text-red-500">{errorAvgPrice}</td>
+                                    {errorTotalByCat && <tr>
+                                        <td colSpan="2" className="py-4 text-center text-red-500">{errorTotalByCat}</td>
                                     </tr>}
-                                    {!loadingAvgPrice && !errorAvgPrice && avgSellingPrice.length === 0 && <tr>
+                                    {!loadingTotalByCat && !errorTotalByCat && totalByCat.length === 0 && <tr>
                                         <td colSpan="2" className="py-4 text-center">Nothing found 😶</td>
                                     </tr>}
-                                    {!loadingAvgPrice && avgSellingPrice.map(cat => (
+                                    {!loadingTotalByCat && totalByCat.map(cat => (
                                         <tr key={cat.category_name}
                                             className="border-b border-[#fff3ea] hover:bg-[#db6c1c]">
                                             <td className="px-4 py-2 text-white">{cat.category_name}</td>
-                                            <td className="px-4 py-2 text-white">${Number(cat.average_selling_price).toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-white">${Number(cat.total_revenue).toFixed(2)}</td>
                                         </tr>
                                     ))}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div className="w-3/5 bg-white p-4 shadow-lg rounded-lg h-full flex flex-col">
-                            <h2 className="text-xl font-semibold mb-4 text-black">Average Selling Price By
-                                Categories</h2>
+                        <div className="w-2/5 bg-white p-4 shadow-lg rounded-lg h-full flex flex-col">
+                            <h2 className="text-xl font-semibold mb-4 text-black">Categories By Total Revenue
+                                Chart</h2>
                             <img
-                                src={average_selling_price_by_categories_chart}
-                                alt="Average Selling Price By Categories Bar Chart"
+                                src={totalRevenueByCatChart}
+                                alt="Total Revenue By Categories Bar Chart"
                                 className="w-full h-[400px] object-contain"
+                                key={`chart-${totalRevenueByCategoriesMinPrice}-${Date.now()}`}
                             />
                         </div>
                     </div>
                 )}
 
-                {selectedOption === 'unsold-products' && (
+                {selectedOption === 'customers' && (
                     <div className="w-full bg-white p-4 shadow-lg rounded-lg overflow-auto">
-                        <h2 className="text-xl font-semibold mb-4 text-black">Unsold Products Except for Selected
-                            Category for Period of Time</h2>
+                        <h2 className="text-xl font-semibold mb-4 text-black">Unsold Products for Period Of Time
+                            with Min Price</h2>
                         <div className="flex items-center mb-4 gap-4">
                             <select
-                                value={unsoldCategoryId}
-                                onChange={e => setUnsoldCategoryId(e.target.value)}
+                                id="category"
+                                value={notCategory}
+                                onChange={e => setNotCategory(e.target.value)}
                                 className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
                             >
-                                <option value="">Select Category</option>
+                                <option value="">All</option>
                                 {categories.map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.category_name}</option>
                                 ))}
                             </select>
-                            <input
-                                type="date"
-                                value={unsoldStartDate}
-                                onChange={e => setUnsoldStartDate(e.target.value)}
-                                className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
-                            />
-                            <input
-                                type="date"
-                                value={unsoldEndDate}
-                                onChange={e => setUnsoldEndDate(e.target.value)}
-                                className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
-                            />
                             <button
-                                onClick={fetchUnsoldProducts}
+                                onClick={fetchCustomers}
                                 className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c]"
                             >Fetch
                             </button>
@@ -366,33 +363,27 @@ export default function StatisticsPage() {
                             <table className="w-full table-auto bg-[#f57b20] text-[#fff3ea]">
                                 <thead>
                                 <tr className="bg-[#db6c1c] sticky top-0">
-                                    <th className="px-4 py-2 text-left">Category</th>
-                                    <th className="px-4 py-2 text-left">Product Name</th>
-                                    <th className="px-4 py-2 text-left">UPC</th>
-                                    <th className="px-4 py-2 text-left">Selling Price</th>
-                                    <th className="px-4 py-2 text-left">Quantity</th>
-                                    <th className="px-4 py-2 text-left">Promotional</th>
+                                    <th className="px-4 py-2 text-left">Card Number</th>
+                                    <th className="px-4 py-2 text-left">Customer Surname</th>
+                                    <th className="px-4 py-2 text-left">Customer Name</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {loadingUnsold && <tr>
-                                    <td colSpan="6" className="py-4 text-center">Loading...</td>
+                                {loadingCustomers && <tr>
+                                    <td colSpan="3" className="py-4 text-center">Loading...</td>
                                 </tr>}
-                                {errorUnsold && <tr>
-                                    <td colSpan="6" className="py-4 text-center text-red-500">{errorUnsold}</td>
+                                {errorCustomers && <tr>
+                                    <td colSpan="3" className="py-4 text-center text-red-500">{errorCustomers}</td>
                                 </tr>}
-                                {!loadingUnsold && !errorUnsold && unsoldProducts.length === 0 && <tr>
+                                {!loadingCustomers && !errorCustomers && customers.length === 0 && <tr>
                                     <td colSpan="6" className="py-4 text-center">No data found 😶</td>
                                 </tr>}
-                                {!loadingUnsold && unsoldProducts.map(p => (
-                                    <tr key={`${p.product_name}-${p.promotional_product}`}
+                                {!loadingCustomers && customers.map(p => (
+                                    <tr key={`${p.card_number}`}
                                         className="border-b border-[#fff3ea] hover:bg-[#db6c1c]">
-                                        <td className="px-4 py-2 text-white">{p.category_name}</td>
-                                        <td className="px-4 py-2 text-white">{p.product_name}</td>
-                                        <td className="px-4 py-2 text-white">{p.upc}</td>
-                                        <td className="px-4 py-2 text-white">${Number(p.selling_price).toFixed(2)}</td>
-                                        <td className="px-4 py-2 text-white">{p.products_number}</td>
-                                        <td className="px-4 py-2 text-white">{p.promotional_product ? "Yes" : "No"}</td>
+                                        <td className="px-4 py-2 text-white">{p.card_number}</td>
+                                        <td className="px-4 py-2 text-white">{p.customer_surname}</td>
+                                        <td className="px-4 py-2 text-white">{p.customer_name}</td>
                                     </tr>
                                 ))}
                                 </tbody>

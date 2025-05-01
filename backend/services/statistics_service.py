@@ -66,60 +66,56 @@ def fetch_products_not_purchased_within_date(print_date):
     ]
 
 
-def fetch_average_selling_price_by_categories():
+def fetch_categories_by_revenue_with_min_price_of_product(min_price):
     query = """
-        SELECT c.category_name, AVG(sp.selling_price) AS average_selling_price
+        SELECT c.category_name, SUM(sp.selling_price) AS total_revenue
         FROM product p
         JOIN store_product sp ON p.id_product = sp.id_product
         JOIN category c ON p.category_number = c.category_number
+        WHERE sp.selling_price > %s
         GROUP BY c.category_name
-        ORDER BY average_selling_price DESC
+        ORDER BY total_revenue DESC
     """
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, (min_price,))
             categories = cur.fetchall()
     return [
         {
             "category_name": row[0],
-            "average_selling_price": row[1],
+            "total_revenue": row[1],
         }
         for row in categories
     ]
 
 
-def fetch_unsold_products_from_not_category_in_period_of_time(category_id, start_date, end_date):
+def fetch_customers_not_from_category_not_from_cashier(category_id):
     query = """
-        SELECT p.product_name, sp.selling_price, c.category_name, sp.products_number, sp.promotional_product, sp.upc
-        FROM store_product sp
+    SELECT cc.card_number, cc.cust_surname, cc.cust_name
+    FROM customer_card cc
+    WHERE cc.card_number NOT IN (
+        SELECT DISTINCT r.card_number
+        FROM receipt r
+        JOIN sale s ON r.receipt_number = s.receipt_number
+        JOIN store_product sp ON s.UPC = sp.UPC
         JOIN product p ON sp.id_product = p.id_product
-        JOIN category c ON p.category_number = c.category_number
-        WHERE p.category_number NOT IN (
-            SELECT category_number
-            FROM category
-            WHERE category_number = %s
-        )
-        AND NOT EXISTS (
-            SELECT 1
-            FROM sale s
-            JOIN receipt r ON s.receipt_number = r.receipt_number
-            WHERE sp.upc = s.upc
-            AND r.print_date BETWEEN %s AND %s
-        )
-        ORDER BY sp.products_number * sp.selling_price DESC
+        WHERE p.category_number = %s AND r.card_number IS NOT NULL
+    )
+    AND cc.card_number NOT IN (
+        SELECT DISTINCT r.card_number
+        FROM receipt r
+        WHERE r.id_employee = 'E000'
+    )
     """
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, (category_id, start_date, end_date))
+            cur.execute(query, (category_id,))
             products = cur.fetchall()
     return [
         {
-            "product_name": row[0],
-            "selling_price": row[1],
-            "category_name": row[2],
-            "products_number": row[3],
-            "promotional_product": row[4],
-            "upc": row[5],
+            "card_number": row[0],
+            "cust_surname": row[1],
+            "cust_name": row[2],
         }
         for row in products
     ]
