@@ -61,5 +61,56 @@ def fetch_products_not_purchased_within_date(print_date):
     ]
 
 
+def fetch_categories_by_revenue_with_min_price_of_product(min_price):
+    query = """
+        SELECT c.category_name, SUM(sp.selling_price) AS total_revenue
+        FROM product p
+        JOIN store_product sp ON p.id_product = sp.id_product
+        JOIN category c ON p.category_number = c.category_number
+        WHERE sp.selling_price > %s
+        GROUP BY c.category_name
+        ORDER BY total_revenue DESC
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (min_price,))
+            categories = cur.fetchall()
+    return [
+        {
+            "category_name": row[0],
+            "total_revenue": row[1],
+        }
+        for row in categories
+    ]
 
 
+def fetch_customers_not_from_category_not_from_cashier(category_id):
+    query = """
+    SELECT cc.card_number, cc.cust_surname, cc.cust_name
+    FROM customer_card cc
+    WHERE cc.card_number NOT IN (
+        SELECT DISTINCT r.card_number
+        FROM receipt r
+        JOIN sale s ON r.receipt_number = s.receipt_number
+        JOIN store_product sp ON s.UPC = sp.UPC
+        JOIN product p ON sp.id_product = p.id_product
+        WHERE p.category_number = %s AND r.card_number IS NOT NULL
+    )
+    AND cc.card_number NOT IN (
+        SELECT DISTINCT r.card_number
+        FROM receipt r
+        WHERE r.id_employee = 'E000'
+    )
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (category_id,))
+            products = cur.fetchall()
+    return [
+        {
+            "card_number": row[0],
+            "cust_surname": row[1],
+            "cust_name": row[2],
+        }
+        for row in products
+    ]
