@@ -17,8 +17,7 @@ def fetch_store_product(upc):
             store_product = cur.fetchone()
 
             if store_product:
-                #if session.get('role') == 'Manager':
-                if True:
+                if session.get('role') == 'Manager':
                     return {
                         "upc": store_product[0],
                         "upc_prom": store_product[1],

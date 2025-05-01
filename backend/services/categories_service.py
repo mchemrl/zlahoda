@@ -17,7 +17,7 @@ def fetch_categories(sort_by=None, is_ascending=None):
             if categories:
                 return [
                     {
-                        "id_category": category[0],
+                        "id": category[0],
                         "category_name": category[1]
                     }
                     for category in categories

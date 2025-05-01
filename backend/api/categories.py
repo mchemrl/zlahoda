@@ -16,7 +16,7 @@ def get_categories():
         if not category:
             return jsonify({"error": "category not found"}), 404
         return jsonify({
-            "id_category": category[0],
+            "id": category[0],
             "category_name": category[1]
         })
 
