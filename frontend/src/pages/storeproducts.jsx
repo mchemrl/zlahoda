@@ -56,7 +56,7 @@ export default function StoreProductsPage() {
 
     useEffect(() => {
         handleInputChange();
-    }, [filter, category, promotional, sortBy, sortOrder]);
+    }, [filter, category, promotional]);
 
     const handleInputChange = () => {
         const searchTerm = (filter || "").toLowerCase().trim();
