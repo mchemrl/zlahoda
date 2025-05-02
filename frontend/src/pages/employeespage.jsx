@@ -1,5 +1,10 @@
-   import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/header";
+import {
+  handlePrint,
+  usePrintStyles,
+  PrintHeader,
+} from "../utils/print.jsx";
 
 export default function EmployeesPage() {
     const [employees, setEmployees] = useState([]);
@@ -28,6 +33,8 @@ export default function EmployeesPage() {
     useEffect(() => {
         fetchEmployees();
     }, [sortField, sortOrder, employeeRole]);
+
+    usePrintStyles();
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -88,7 +95,7 @@ export default function EmployeesPage() {
                     setErrorModal({
                         open: true,
                         title: "Failed to delete employee",
-                        message: data.error || (res.status === 404 ? 'Employee not found' : 'Server error')
+                        message: "You can't delete an employee that has associated receipts",
                     });
                 }
             })
@@ -175,7 +182,7 @@ export default function EmployeesPage() {
                     zip_code: ""
                 });
             })
-            .catch(err => setErrorModal({ open: true, title: "Failed to add employee", message: err.message }));
+            .catch(err => setErrorModal({ open: true, title: "Failed to add employee", message: "Make sure you entered correct data and required fields are not empty." }));
     };
 
     return (
@@ -183,12 +190,12 @@ export default function EmployeesPage() {
                 className='w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-["Kumbh_Sans"] text-lg font-normal flex flex-col relative'>
                 <Header/>
                 {errorModal.open && (
-                <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-opacity-0 z-50">
+                <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-opacity-0 z-60">
                     <div className="bg-white rounded-lg p-6 w-80 text-center shadow-lg">
                         <h3 className="text-xl font-semibold mb-4 text-red-600">
                             {errorModal.title}
                         </h3>
-                        <p className="mb-6">{errorModal.message}</p>
+                        <p className="mb-6 text-black">{errorModal.message}</p>
                         <button
                             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
                             onClick={() => setErrorModal({ open: false, title: "", message: "" })}
@@ -361,6 +368,14 @@ export default function EmployeesPage() {
                         >
                             Filter
                         </button>
+                              {localStorage.getItem("role")=== "Manager" && (
+                        <button
+                          onClick={handlePrint}
+                          className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+                        >
+                          Print
+                        </button>
+                      )}
                     </div>
     
                     <div className="w-full flex space-x-6">
@@ -398,9 +413,10 @@ export default function EmployeesPage() {
                             <option value="Descending">Descending</option>
                         </select>
                     </div>
-    
-                    <div className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
-                        <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea]">
+                <PrintHeader title="Employee Report" />
+
+                    <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+                        <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea] text-xs">
                             <thead>
                             <tr className="bg-[#db6c1c] sticky top-0">
                                 <th className="px-4 py-2">ID</th>

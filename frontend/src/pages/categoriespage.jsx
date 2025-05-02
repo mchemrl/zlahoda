@@ -9,6 +9,7 @@ import {
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
+  const [errorModal, setErrorModal] = useState({ open: false, message: "" });
   const [sortOrder, setSortOrder] = useState("Ascending");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [addCategoryModalOpen, setAddCategoryModalOpen] = useState(false);
@@ -18,7 +19,9 @@ export default function CategoriesPage() {
   });
   const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate();
+
 usePrintStyles();
+
   useEffect(() => {
     if (localStorage.getItem("role") !== "Manager") {
       navigate("/profile");
@@ -90,29 +93,37 @@ usePrintStyles();
       .catch((error) => console.error("Error updating category:", error));
   };
 
-  const handleDeleteCategory = () => {
-    if (!selectedCategory) return;
-    fetch(
-      `http://localhost:5000/api/categories/?category_id=${selectedCategory.id}`,
-      {
-        method: "DELETE",
-        credentials: "include",
+const handleDeleteCategory = () => {
+  if (!selectedCategory) return;
+
+  const url = `http://localhost:5000/api/categories/?category_id=${selectedCategory.id}`;
+
+  fetch(url, { method: "DELETE", credentials: "include" })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 200) {
+        setCategories(prev =>
+          prev.filter(c => c.id !== selectedCategory.id)
+        );
+        closeEditModal();
+      } else {
+        setErrorModal({
+          open: true,
+          title: "Failed to delete category",
+          message: data?.error || "This category may be associated with other items",
+        });
       }
-    )
-      .then((response) => {
-        if (response.ok) {
-          setCategories((prevCategories) =>
-            prevCategories.filter((c) => c.id !== selectedCategory.id)
-          );
-          closeEditModal();
-        } else {
-          return response.json().then((data) => {
-            throw new Error(data.error);
-          });
-        }
-      })
-      .catch((error) => console.error("Error deleting category:", error));
-  };
+    })
+    .catch((err) => {
+      console.error("Error deleting category:", err);
+      setErrorModal({
+        open: true,
+        title: "Failed to delete category",
+        message: "This category may be associated with other items",
+      });
+    });
+};
+
 
   const handleAddCategory = () => {
     fetch("http://localhost:5000/api/categories/", {
@@ -148,6 +159,22 @@ usePrintStyles();
   return (
     <div className="w-screen min-w-[1000px] h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
+      {errorModal.open && (
+                <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-opacity-0 z-60">
+                    <div className="bg-white rounded-lg p-6 w-80 text-center shadow-lg">
+                        <h3 className="text-xl font-semibold mb-4 text-red-600">
+                            {errorModal.title}
+                        </h3>
+                        <p className="mb-6 text-black">{errorModal.message}</p>
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                            onClick={() => setErrorModal({ open: false, title: "", message: "" })}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
         <div className="w-full flex spacetransitions-x-6 mb-4 gap-4">
           <select
@@ -174,7 +201,7 @@ usePrintStyles();
       )}
         </div>
 
-        <PrintHeader title="Product Report" />
+        <PrintHeader title="Category Report" />
 
 
         <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
