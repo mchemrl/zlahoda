@@ -195,6 +195,9 @@ export default function ProductsPage() {
                             placeholder="Search by product name"
                             value={productName}
                             onChange={(e) => handleInputChange(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") handleFilter();
+                            }}
                             onFocus={() => setInputFocused(true)}
                             onBlur={() => {
                                 setTimeout(() => {
