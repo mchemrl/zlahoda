@@ -9,6 +9,7 @@ import {
 export default function ProductsPage() {
     const [suggestions, setSuggestions] = useState([]);
     const [inputFocused, setInputFocused] = useState(false);
+    const [allProducts, setAllProducts] = useState([]);
 
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -25,15 +26,31 @@ export default function ProductsPage() {
     });
 
     const handleInputChange = () => {
-        const matches = products
-            .filter((p) =>
-                (p?.product_name || "").toLowerCase().includes((productName || "").toLowerCase())
-            )
-            .map((p) => p.product_name);
+        const searchTerm = (productName || "").toLowerCase().trim();
 
-        const uniqueSuggestions = [...new Set(matches)];
-        setSuggestions(uniqueSuggestions);
+        if (category === "All categories") {
+            const matches = allProducts
+                .filter(p => (p.product_name || "").toLowerCase().includes(searchTerm))
+                .map(p => p.product_name);
+            setSuggestions([...new Set(matches)]);
+            return;
+        }
+
+        const selectedCategory = categories.find(cat => cat.id === parseInt(category));
+        if (!selectedCategory) return;
+
+        const matches = allProducts
+            .filter(p =>
+                (p.product_name || "").toLowerCase().includes(searchTerm) &&
+                p.category_name === selectedCategory.category_name
+            )
+            .map(p => p.product_name);
+        setSuggestions([...new Set(matches)]);
     };
+
+    useEffect(() => {
+        handleInputChange();
+    }, [productName, category, products]);
 
     usePrintStyles();
 
@@ -75,6 +92,9 @@ export default function ProductsPage() {
             .then((response) => response.json())
             .then((data) => {
                 setProducts(data);
+                if (allProducts.length === 0) {
+                    setAllProducts(data);
+                }
             })
             .catch((error) => console.error("Error fetching products:", error));
     };
@@ -195,7 +215,6 @@ export default function ProductsPage() {
                             value={productName}
                             onChange={(e) => {
                                 setProductName(e.target.value);
-                                handleInputChange()
                             }}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
@@ -232,10 +251,12 @@ export default function ProductsPage() {
                     </div>
                     <select
                         value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        onChange={(e) => {
+                            setCategory(e.target.value);
+                        }}
                         className="flex-2 border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20]"
                     >
-                        <option>All categories</option>
+                        <option value="All categories">All categories</option>
                         {categories.map((cat) => (
                             <option className="w-full" key={cat.id} value={cat.id}>
                                 {cat.category_name}
