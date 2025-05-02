@@ -71,8 +71,8 @@ export default function StoreProductsPage() {
         const params = new URLSearchParams();
 
         if (filter.trim()) {
-            params.append("upc", filter.trim());
-            console.log(params.get("upc"));
+                params.append("search", filter.trim());
+
         }
 
         if (promotional === "promotional") {

@@ -17,6 +17,7 @@ def get_store_products():
     sort = request.args.get('sort')
     category = request.args.get('category')
     descending = request.args.get('descending')
+    search = request.args.get('search')
 
     if upc:
         store_product = fetch_store_product(upc)
@@ -25,7 +26,7 @@ def get_store_products():
         else:
             return jsonify({'error': 'store product not found'}), 404
     else:
-        products = fetch_store_products(promotional, category, sort, descending)
+        products = fetch_store_products(promotional, category, search, sort, descending)
         return jsonify(products)
 
 @store_product.route('/', methods=('POST',))
