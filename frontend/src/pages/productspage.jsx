@@ -196,7 +196,10 @@ export default function ProductsPage() {
                             value={productName}
                             onChange={(e) => handleInputChange(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === "Enter") handleFilter();
+                                if (e.key === "Enter") {
+                                    handleFilter();
+                                    e.currentTarget.blur();
+                                }
                             }}
                             onFocus={() => setInputFocused(true)}
                             onBlur={() => {
@@ -217,6 +220,7 @@ export default function ProductsPage() {
                                         onClick={() => {
                                             setProductName(suggestion);
                                             setSuggestions([]);
+                                            handleFilter();
                                         }}
                                     >
                                         {suggestion}
