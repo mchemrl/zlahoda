@@ -24,11 +24,10 @@ export default function ProductsPage() {
         characteristics: "",
     });
 
-    const handleInputChange = (value) => {
-        setProductName(value);
+    const handleInputChange = () => {
         const matches = products
             .filter((p) =>
-                (p?.product_name || "").toLowerCase().includes((value || "").toLowerCase())
+                (p?.product_name || "").toLowerCase().includes((productName || "").toLowerCase())
             )
             .map((p) => p.product_name);
 
@@ -194,7 +193,10 @@ export default function ProductsPage() {
                             type="text"
                             placeholder="Search by product name"
                             value={productName}
-                            onChange={(e) => handleInputChange(e.target.value)}
+                            onChange={(e) => {
+                                setProductName(e.target.value);
+                                handleInputChange()
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     handleFilter();
