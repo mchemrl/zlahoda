@@ -437,7 +437,7 @@ export default function EmployeesPage() {
                             {employees.length === 0 ? (
                                 <tr>
                                     <td colSpan="12" className="text-center py-4 text-[#fff3ea]">
-                                        No employees found
+                                        -
                                     </td>
                                 </tr>
                             ) : (
@@ -504,22 +504,6 @@ export default function EmployeesPage() {
     
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-[#f57b20]">ID</label>
-                                        <input
-                                            type="text"
-                                            value={selectedEmployee.id_employee}
-                                            onChange={(e) =>
-                                                setSelectedEmployee({
-                                                    ...selectedEmployee,
-                                                    id_employee: e.target.value,
-                                                })
-                                            }
-                                            className="w-full border p-2 rounded border-[#f57b20] text-[#f57b20]"
-                                        />
-                                    </div>
-    
-    
                                     <div>
                                         <label className="block text-[#f57b20]">Surname</label>
                                         <input

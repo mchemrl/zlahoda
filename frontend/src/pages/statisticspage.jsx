@@ -20,10 +20,7 @@ export default function StatisticsPage() {
   const [errorNP, setErrorNP] = useState(null);
 
   const [totalByCat, setTotalByCat] = useState([]);
-  const [
-    totalRevenueByCategoriesMinPrice,
-    setTotalRevenueByCategoriesMinPrice,
-  ] = useState("");
+  const [totalRevenueByCategoriesMinPrice, setTotalRevenueByCategoriesMinPrice] = useState("");
   const [totalRevenueByCatChart, setTotalRevenueByCatChart] = useState("");
   const [loadingTotalByCat, setLoadingTotalByCat] = useState(false);
   const [errorTotalByCat, setErrorTotalByCat] = useState(null);
@@ -455,19 +452,26 @@ export default function StatisticsPage() {
               <h2 className="text-xl font-semibold mb-4 text-black">
                 Total Revenue by Categories
               </h2>
-              <img
-                src={totalRevenueByCatChart}
-                alt="Total Revenue By Categories Bar Chart"
-                className="w-full h-[400px] object-contain"
-                key={`chart-${totalRevenueByCategoriesMinPrice}-${Date.now()}`}
-              />
+                {totalByCat.length > 0 ? (
+                    <img
+                        src={totalRevenueByCatChart}
+                        alt="Total Revenue By Categories Bar Chart"
+                        className="w-full h-[400px] object-contain"
+                        key={`chart-${totalRevenueByCategoriesMinPrice}-${Date.now()}`}
+                    />) : (
+                    <img
+                        src="static/bumbastik/bumbastik_cry.gif"
+                        alt="No Data Available"
+                        className="w-full h-[300px] object-contain"
+                    />
+                )}
             </div>
           </div>
         )}
-        {selectedOption === "customers" && (
-          <div className="w-full bg-white p-4 shadow-lg rounded-lg overflow-auto">
-            <h2 className="text-xl font-semibold mb-4 text-black">
-              Customers who did not purchase any products from the selected
+          {selectedOption === "customers" && (
+              <div className="w-full bg-white p-4 shadow-lg rounded-lg overflow-auto">
+                        <h2 className="text-xl font-semibold mb-4 text-black">
+                            Customers who did not purchase any products from the selected
               category
             </h2>
             <div className="flex items-center mb-4 gap-4">
