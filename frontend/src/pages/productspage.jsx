@@ -8,7 +8,6 @@ import {
 
 export default function ProductsPage() {
     const [suggestions, setSuggestions] = useState([]);
-    const [allProducts, setAllProducts] = useState([]);
     const [inputFocused, setInputFocused] = useState(false);
 
     const [products, setProducts] = useState([]);
@@ -27,7 +26,7 @@ export default function ProductsPage() {
 
     const handleInputChange = (value) => {
         setProductName(value);
-        const matches = allProducts
+        const matches = products
             .filter((p) =>
                 (p?.product_name || "").toLowerCase().includes((value || "").toLowerCase())
             )
@@ -77,7 +76,6 @@ export default function ProductsPage() {
             .then((response) => response.json())
             .then((data) => {
                 setProducts(data);
-                setAllProducts(data);
             })
             .catch((error) => console.error("Error fetching products:", error));
     };
