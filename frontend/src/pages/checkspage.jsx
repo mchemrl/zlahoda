@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/header";
-import {
-  handlePrint,
-  usePrintStyles,
-  PrintHeader,
-} from "../utils/print.jsx";
+import { handlePrint, usePrintStyles, PrintHeader } from "../utils/print.jsx";
 
 export default function ChecksPage() {
   const [checkNumber, setCheckNumber] = useState("");
@@ -18,6 +14,10 @@ export default function ChecksPage() {
   const [selectedCashier, setSelectedCashier] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [lookupModalOpen, setLookupModalOpen] = useState(false);
+  const [lookupReceiptNumber, setLookupReceiptNumber] = useState("");
+  const [lookupReceipt, setLookupReceipt] = useState(null);
+  const [lookupError, setLookupError] = useState("");
   const role = localStorage.getItem("role");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -40,7 +40,17 @@ export default function ChecksPage() {
       .then((response) => response.json())
       .then((data) => {
         newReceipt.id_employee = data.id_employee;
-        console.log(newReceipt);
+        if (role === "Cashier") {
+          setSelectedCashier(data.id_employee);
+          const today = new Date().toISOString().split("T")[0];
+          setStartDate(today);
+          setEndDate(today);
+          fetchChecks({
+            cashier_id: data.id_employee,
+            start_date: today,
+            end_date: today,
+          });
+        }
       })
       .catch((error) => {
         console.error("Error fetching user:", error);
@@ -48,11 +58,13 @@ export default function ChecksPage() {
       });
 
     fetchProducts();
-    handleFilter();
+    if (role !== "Cashier") {
+      handleFilter();
+    }
   }, []);
+
   const fetchProducts = () => {
     const queryParams = new URLSearchParams();
-
     fetch(
       `http://localhost:5000/api/store_products?${queryParams.toString()}`,
       {
@@ -113,56 +125,127 @@ export default function ChecksPage() {
     }
   };
 
+  const handleReceiptLookup = () => {
+    setLookupError("");
+    // First, fetch receipt details
+    fetch(
+      `http://localhost:5000/api/receipts?receipt_id=${lookupReceiptNumber}`,
+      {
+        credentials: "include",
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Receipt not found");
+        }
+        return response.json();
+      })
+      .then((receiptData) => {
+        // Then, fetch sales (products) for this receipt
+        return fetch(
+          `http://localhost:5000/api/sales/?receipt_id=${lookupReceiptNumber}`,
+          {
+            credentials: "include",
+          }
+        )
+          .then((salesResponse) => {
+            if (!salesResponse.ok) {
+              throw new Error("Sales not found");
+            }
+            return salesResponse.json();
+          })
+          .then((salesData) => {
+            // Combine receipt data with sales data
+            setLookupReceipt({
+              ...receiptData,
+              products: salesData,
+            });
+            // console.log(lookupReceipt.products);
+          });
+      })
+      .catch((error) => {
+        setLookupError(error.message);
+        setLookupReceipt(null);
+      });
+  };
+
   return (
     <div className="w-screen h-screen bg-[#fff3ea] font-['Kumbh_Sans'] text-lg font-normal flex flex-col relative">
       <Header />
-
       <main className="flex-grow flex flex-col w-full h-screen overflow-hidden px-8 py-8">
-        <div className="w-full flex flex-wrap gap-4">
-          <select
-            value={selectedCashier}
-            onChange={(e) => setSelectedCashier(e.target.value)}
-            className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-1"
-          >
-            <option value="">All Cashiers</option>
-            {cashiers.map((cashier) => (
-              <option key={cashier.id_employee} value={cashier.id_employee}>
-                {cashier.empl_surname} {cashier.empl_name}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-2"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-2"
-          />
-
-          <button
-            onClick={handleFilter}
-            className="bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-white flex-1"
-          >
-            Filter
-          </button>
-          {localStorage.getItem("role")=== "Manager" && (
-        <button
-          onClick={handlePrint}
-          className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
-        >
-          Print
-        </button>
-      )}
-        </div>
+        {role === "Manager" && (
+          <div className="w-full flex flex-wrap gap-4">
+            <select
+              value={selectedCashier}
+              onChange={(e) => setSelectedCashier(e.target.value)}
+              className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-1"
+            >
+              <option value="">All Cashiers</option>
+              {cashiers.map((cashier) => (
+                <option key={cashier.id_employee} value={cashier.id_employee}>
+                  {cashier.empl_surname} {cashier.empl_name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-2"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-2"
+            />
+            <button
+              onClick={handleFilter}
+              className="bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-white flex-1"
+            >
+              Filter
+            </button>
+            <button
+              onClick={handlePrint}
+              className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+            >
+              Print
+            </button>
+          </div>
+        )}
+        {role === "Cashier" && (
+          <div className="w-full flex flex-wrap gap-4">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-2"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border border-[#f57b20] rounded-md px-3 py-2 bg-[#fff3ea] text-[#f57b20] flex-2"
+            />
+            <button
+              onClick={handleFilter}
+              className="bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-white flex-1"
+            >
+              Filter
+            </button>
+            <button
+              onClick={() => setLookupModalOpen(true)}
+              className="flex-1 border bg-[#f57b20] rounded-md px-3 py-2 cursor-pointer hover:bg-[#db6c1c] text-[#fff3ea]"
+            >
+              Lookup Receipt
+            </button>
+          </div>
+        )}
         <PrintHeader title="Check Report" />
-
-        <div id="print-content" className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <div
+          id="print-content"
+          className="w-full bg-[#f57b20] mt-6 p-0 overflow-x-auto max-h-[60vh] overflow-y-auto"
+        >
           <table className="w-full border-collapse bg-[#f57b20] text-[#fff3ea]">
             <thead>
               <tr className="bg-[#db6c1c] sticky top-0">
@@ -183,7 +266,9 @@ export default function ChecksPage() {
                 checks.map((check) => (
                   <tr
                     key={check.receipt_number}
-                    className={`border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center ${role === "Manager" ? "cursor-pointer" : ""}`}
+                    className={`border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center ${
+                      role === "Manager" ? "cursor-pointer" : ""
+                    }`}
                     onClick={() => handleRowClick(check)}
                   >
                     <td className="px-4 py-2">{check.receipt_number}</td>
@@ -196,12 +281,14 @@ export default function ChecksPage() {
             </tbody>
           </table>
         </div>
-        <button
-          onClick={() => setAddModalOpen(true)}
-          className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
-        >
-          Add new receipt
-        </button>
+        {
+          <button
+            onClick={() => setAddModalOpen(true)}
+            className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          >
+            Add new receipt
+          </button>
+        }
       </main>
 
       {deleteModalOpen && (
@@ -210,11 +297,14 @@ export default function ChecksPage() {
             <h2 className="text-xl font-bold text-[#f57b20] mb-4">
               Confirm Delete
             </h2>
-            <p className="mb-6 text-black">Are you sure you want to delete this receipt?</p>
+            <p className="mb-6 text-black">
+              Are you sure you want to delete this receipt?
+            </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={() => {setDeleteModalOpen(false);
-                                     setSelectedReceipt(null);
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setSelectedReceipt(null);
                 }}
                 className="border border-[#f57b20] text-[#f57b20] px-4 py-2 rounded hover:bg-[#ffebdb] cursor-pointer"
               >
@@ -277,7 +367,6 @@ export default function ChecksPage() {
               }}
               className="w-full mb-6 border p-2 rounded border-[#f57b20] text-[#f57b20]"
             />
-
             {newReceipt.products.map((item, index) => (
               <div key={index} className="flex gap-2 items-center mb-4">
                 <select
@@ -288,13 +377,11 @@ export default function ChecksPage() {
                       (prod) => prod.upc === selectedUPC
                     );
                     const updated = [...newReceipt.products];
-
                     updated[index] = {
                       ...updated[index],
                       upc: selectedProduct.upc,
                       is_promo: selectedProduct.promotional_product,
                     };
-
                     setNewReceipt({ ...newReceipt, products: updated });
                   }}
                   className="w-full border p-2 rounded border-[#f57b20] text-[#f57b20]"
@@ -308,7 +395,6 @@ export default function ChecksPage() {
                     </option>
                   ))}
                 </select>
-
                 <input
                   type="number"
                   min="1"
@@ -321,7 +407,6 @@ export default function ChecksPage() {
                   }}
                   className="border border-[#f57b20] border p-2 rounded border-[#f57b20] text-[#f57b20]"
                 />
-
                 <button
                   onClick={() => {
                     const updated = newReceipt.products.filter(
@@ -349,11 +434,9 @@ export default function ChecksPage() {
             >
               + Add another good
             </button>
-
             <div className="flex justify-between">
               <button
                 onClick={() => {
-                  console.log(newReceipt);
                   setErrors([]);
                   fetch("http://localhost:5000/api/receipts/", {
                     method: "POST",
@@ -389,6 +472,100 @@ export default function ChecksPage() {
                 Save
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {lookupModalOpen && role === "Cashier" && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
+          <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-6 max-w-lg w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[#f57b20]">
+                Lookup Receipt
+              </h2>
+              <button
+                onClick={() => {
+                  setLookupModalOpen(false);
+                  setLookupReceipt(null);
+                  setLookupReceiptNumber("");
+                  setLookupError("");
+                }}
+                className="text-[#f57b20] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Enter receipt number"
+                value={lookupReceiptNumber}
+                onChange={(e) => setLookupReceiptNumber(e.target.value)}
+                className="border border-[#f57b20] rounded p-2 w-full bg-[#fff3ea] text-[#f57b20]"
+              />
+              <button
+                onClick={handleReceiptLookup}
+                className="mt-2 bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c] cursor-pointer w-full"
+              >
+                Search
+              </button>
+            </div>
+            {lookupError && (
+              <div className="text-red-600 mb-4">{lookupError}</div>
+            )}
+            {lookupReceipt && (
+              <div className="text-black">
+                <div className="mb-2">
+                  <strong>Receipt Number:</strong>{" "}
+                  {lookupReceipt.receipt_number}
+                </div>
+                <div className="mb-2">
+                  <strong>Date:</strong> {lookupReceipt.print_date}
+                </div>
+                <div className="mb-2">
+                  <strong>Cashier ID:</strong> {lookupReceipt.id_employee}
+                </div>
+                <div className="mb-2">
+                  <strong>Customer Card:</strong>{" "}
+                  {lookupReceipt.customer_card || "-"}
+                </div>
+                <div className="mb-2">
+                  <strong>Total Sum:</strong> {lookupReceipt.sum_total}
+                </div>
+                <h3 className="font-bold text-[#f57b20] mt-4 mb-2">Products</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#f57b20] text-[#fff3ea]">
+                      <th className="px-4 py-2">Name</th>
+                      <th className="px-4 py-2">Quantity</th>
+                      <th className="px-4 py-2">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lookupReceipt.products?.length > 0 ? (
+                      lookupReceipt.products.map((product, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-[#f57b20] text-center"
+                        >
+                          <td className="px-4 py-2">{product.product_name}</td>
+                          <td className="px-4 py-2">
+                            {product.product_number}
+                          </td>
+                          <td className="px-4 py-2">{product.selling_price}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="text-center py-4">
+                          No products found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
