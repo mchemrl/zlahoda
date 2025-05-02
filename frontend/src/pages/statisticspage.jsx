@@ -10,6 +10,9 @@ export default function StatisticsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingTop, setLoadingTop] = useState(false);
+  const [errorTop, setErrorTop] = useState(null);
+  const [hasFetchedTop, setHasFetchedTop] = useState(false);
 
   const [printDate, setPrintDate] = useState("");
   const [notPurchased, setNotPurchased] = useState([]);
@@ -37,28 +40,28 @@ export default function StatisticsPage() {
       .catch(() => console.error("Failed to load categories"));
   }, []);
 
-  useEffect(() => {
-    if (selectedOption !== "top-products") return;
-    setLoading(true);
-    setError(null);
+  const fetchTopProducts = () => {
+    setHasFetchedTop(true);
+    setLoadingTop(true);
+    setErrorTop(null);
     const baseUrl = "http://127.0.0.1:5000/api/statistics/top_products";
     const url = selectedCategory
       ? `${baseUrl}?category=${parseInt(selectedCategory)}`
       : baseUrl;
+
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
-          setError(data.error);
+          setErrorTop(data.error);
           setProducts([]);
-          console.log(baseUrl);
         } else {
           setProducts(data);
         }
       })
-      .catch(() => setError("Failed to fetch data 🙁"))
-      .finally(() => setLoading(false));
-  }, [selectedOption, selectedCategory]);
+      .catch(() => setErrorTop("Failed to fetch data 🙁"))
+      .finally(() => setLoadingTop(false));
+  };
 
   const fetchNotPurchased = () => {
     if (!printDate) return;
@@ -142,6 +145,9 @@ export default function StatisticsPage() {
   };
 
   const handleTabChange = (key) => {
+    setHasFetchedTop(false);
+    setErrorTop(null);
+    setLoadingTop(false);
     setSelectedOption(key);
     setProducts([]);
     setError(null);
@@ -222,6 +228,12 @@ export default function StatisticsPage() {
                       </option>
                     ))}
                   </select>
+                  <button
+                    onClick={fetchTopProducts}
+                    className="ml-4 bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c]"
+                  >
+                    Fetch
+                  </button>
                 </div>
                 <div className="w-full bg-[#f57b20] rounded-md overflow-hidden">
                   <table className="w-full table-auto bg-[#f57b20] text-[#fff3ea]">
@@ -370,7 +382,7 @@ export default function StatisticsPage() {
               <h2 className="text-xl font-semibold mb-4 text-black">
                 Total Revenue by Categories with min price of the product
               </h2>
-              <div className="flex items-center mb-4 gap-4">
+              <div className="flex items-center mb-4 gap-8">
                 <input
                   value={totalRevenueByCategoriesMinPrice}
                   onChange={(e) =>
