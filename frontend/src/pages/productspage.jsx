@@ -220,7 +220,6 @@ export default function ProductsPage() {
                                         onClick={() => {
                                             setProductName(suggestion);
                                             setSuggestions([]);
-                                            handleFilter();
                                         }}
                                     >
                                         {suggestion}
