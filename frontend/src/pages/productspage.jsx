@@ -33,6 +33,10 @@ export default function ProductsPage() {
                 .filter(p => (p.product_name || "").toLowerCase().includes(searchTerm))
                 .map(p => p.product_name);
             setSuggestions([...new Set(matches)]);
+            console.log("Filtered products:", {
+                allProducts: allProducts,
+                filtered: matches
+            });
             return;
         }
 
@@ -46,6 +50,10 @@ export default function ProductsPage() {
             )
             .map(p => p.product_name);
         setSuggestions([...new Set(matches)]);
+        console.log("Filtered products:", {
+                allProducts: allProducts,
+                filtered: matches
+            });
     };
 
     useEffect(() => {
