@@ -316,7 +316,12 @@ export default function ChecksPage() {
             {isFiltered && selectedCashier && (
               <div>
                 Total Sales by Selected Cashier:{" "}
-                <strong>${Number(totalSumCashier).toFixed(2)}</strong>
+                <strong>
+                  {Number(totalSumCashier).toFixed(2) ===
+                  Number(totalSumAll).toFixed(2)
+                    ? "-"
+                    : "$" + Number(totalSumCashier).toFixed(2)}
+                </strong>
               </div>
             )}
             {isFiltered && (
@@ -328,7 +333,11 @@ export default function ChecksPage() {
             {isFiltered && selectedProductUPC && (
               <div>
                 Total Units Sold of Selected Product:{" "}
-                <strong>{Number(productQuantity)}</strong>
+                <strong>
+                  {Number(productQuantity) === 0
+                    ? "-"
+                    : Number(productQuantity)}
+                </strong>
               </div>
             )}
           </div>
