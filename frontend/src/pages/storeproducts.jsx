@@ -54,17 +54,51 @@ export default function StoreProductsPage() {
         fetchStoreProducts();
     }, []);
 
-    const handleInputChange = (value) => {
-        setFilter(value);
+    useEffect(() => {
+        handleInputChange();
+    }, [filter, category, promotional, sortBy, sortOrder]);
+
+    const handleInputChange = () => {
+        const searchTerm = (filter || "").toLowerCase().trim();
+
+        if (category === "All categories" && promotional === "all") {
+            const matches = allStoreProducts
+                .filter(sp => (sp.upc || "").toLowerCase().includes(searchTerm))
+                .map(sp => sp.upc);
+            setSuggestions([...new Set(matches)]);
+            console.log("Filtered products:", {
+                storeProducts: allStoreProducts,
+                filtered: matches
+            });
+            return;
+        }
+
         const matches = allStoreProducts
-            .filter((p) =>
-                (p?.upc || "").toLowerCase().includes((value || "").toLowerCase())
-            )
-            .map((p) => p.upc);
+            .filter(sp => {
+                const upcMatch = (sp.upc || "").toLowerCase().includes(searchTerm);
 
+                let categoryMatch;
+                if (category !== "All categories") {
+                    const selectedCategory = categories.find(cat => cat.id === parseInt(category));
+                    categoryMatch = sp.category.toLowerCase() === selectedCategory.category_name.toLowerCase();
+                } else {
+                    categoryMatch = true;
+                }
 
-        const uniqueSuggestions = [...new Set(matches)];
-        setSuggestions(uniqueSuggestions);
+                const promoMatch =
+                    promotional === "all" ||
+                    (promotional === "promotional" && sp.promotional_product) ||
+                    (promotional === "non-promotional" && !sp.promotional_product);
+
+                return upcMatch && promoMatch && categoryMatch;
+            })
+            .map(sp => sp.upc);
+
+        setSuggestions([...new Set(matches)]);
+        console.log("Filtered products:", {
+            storeProducts: allStoreProducts,
+            filtered: matches
+        });
     };
 
     const fetchStoreProducts = () => {
@@ -338,7 +372,9 @@ export default function StoreProductsPage() {
                             type="text"
                             placeholder="Search by UPC"
                             value={filter}
-                            onChange={(e) => handleInputChange(e.target.value)}
+                            onChange={(e) => {
+                                setFilter(e.target.value);
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                     handleFilter();
@@ -393,7 +429,7 @@ export default function StoreProductsPage() {
                         onChange={(e) => setCategory(e.target.value)}
                         className="flex-1 border border-[#f57b20] rounded-md pl-3 py-2 bg-[#fff3ea] text-[#f57b20]"
                     >
-                        <option>All categories</option>
+                        <option value="All categories">All categories</option>
                         {categories.map((product) => (
                             <option className="w-full" key={product.id} value={product.id}>
                                 {product.category_name}
