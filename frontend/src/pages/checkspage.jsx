@@ -22,21 +22,20 @@ export default function ChecksPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [selectedReceiptProducts, setSelectedReceiptProducts] = useState([]); // New state for products
   const [newReceipt, setNewReceipt] = useState({
     products: [{ id_product: "", product_number: 1 }],
   });
-  // States for totals and product quantity (Manager only)
   const [totalSumCashier, setTotalSumCashier] = useState(0);
   const [totalSumAll, setTotalSumAll] = useState(0);
   const [productQuantity, setProductQuantity] = useState(0);
   const [selectedProductUPC, setSelectedProductUPC] = useState("");
-  const [isFiltered, setIsFiltered] = useState(false); // New state to track if filter is applied
+  const [isFiltered, setIsFiltered] = useState(false);
 
   const role = localStorage.getItem("role");
   usePrintStyles();
 
   useEffect(() => {
-    // Fetch cashiers (for Managers)
     if (role === "Manager") {
       fetch("http://localhost:5000/api/employees?role=Cashier")
         .then((res) => res.json())
@@ -44,7 +43,6 @@ export default function ChecksPage() {
         .catch((err) => console.error("Error fetching cashiers:", err));
     }
 
-    // Fetch current user
     fetch("http://localhost:5000/api/employees/me", {
       method: "GET",
       credentials: "include",
@@ -69,7 +67,6 @@ export default function ChecksPage() {
         setError(error.message);
       });
 
-    // Fetch customers
     fetch("http://localhost:5000/api/client/", {
       method: "GET",
       credentials: "include",
@@ -108,7 +105,6 @@ export default function ChecksPage() {
   };
 
   const fetchTotals = (cashierId, start, end) => {
-    // Fetch total sum for specific cashier
     const cashierParams = new URLSearchParams();
     if (cashierId) cashierParams.append("cashier_id", cashierId);
     if (start) cashierParams.append("start_date", start);
@@ -126,7 +122,6 @@ export default function ChecksPage() {
         console.error("Error fetching cashier total sum:", error)
       );
 
-    // Fetch total sum for all cashiers
     const allParams = new URLSearchParams();
     if (start) allParams.append("start_date", start);
     if (end) allParams.append("end_date", end);
@@ -143,7 +138,6 @@ export default function ChecksPage() {
         console.error("Error fetching all cashiers total sum:", error)
       );
 
-    // Fetch product quantity if a product is selected
     if (selectedProductUPC) {
       const productParams = new URLSearchParams();
       productParams.append("upc", selectedProductUPC);
@@ -174,7 +168,7 @@ export default function ChecksPage() {
     fetchChecks(params);
     if (role === "Manager") {
       fetchTotals(selectedCashier, startDate, endDate);
-      setIsFiltered(true); // Set filter applied state
+      setIsFiltered(true);
     }
   };
 
@@ -190,6 +184,7 @@ export default function ChecksPage() {
         .then(() => {
           setDeleteModalOpen(false);
           setSelectedReceipt(null);
+          setSelectedReceiptProducts([]);
           handleFilter();
         })
         .catch((err) => console.error("Error deleting receipt:", err));
@@ -200,6 +195,24 @@ export default function ChecksPage() {
     if (role === "Manager") {
       setSelectedReceipt(check);
       setDeleteModalOpen(true);
+      // Fetch products for the receipt
+      fetch(
+        `http://localhost:5000/api/sales/?receipt_id=${check.receipt_number}`,
+        {
+          credentials: "include",
+        }
+      )
+        .then((response) => {
+          if (!response.ok) throw new Error("Sales not found");
+          return response.json();
+        })
+        .then((salesData) => {
+          setSelectedReceiptProducts(salesData);
+        })
+        .catch((error) => {
+          console.error("Error fetching receipt products:", error);
+          setSelectedReceiptProducts([]);
+        });
     }
   };
 
@@ -307,7 +320,6 @@ export default function ChecksPage() {
           )}
         </div>
 
-        {/* Display Totals (Manager only) */}
         {role === "Manager" && (
           <div className="mt-4 bg-[#fff3ea] p-4 rounded-md border border-[#f57b20] text-[#f57b20]">
             <h3 className="text-xl font-bold text-[#f57b20] mb-2">
@@ -391,7 +403,6 @@ export default function ChecksPage() {
         </button>
       </main>
 
-      {/* Delete Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-6 max-w-md">
@@ -399,13 +410,41 @@ export default function ChecksPage() {
               Confirm Delete
             </h2>
             <p className="mb-6 text-black">
-              Are you sure you want to delete this receipt?
+              Are you sure you want to delete receipt{" "}
+              {selectedReceipt?.receipt_number}?
             </p>
+            {selectedReceiptProducts.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-bold text-[#f57b20] mb-2">Products</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#f57b20] text-[#fff3ea]">
+                      <th className="px-4 py-2">Name</th>
+                      <th className="px-4 py-2">Quantity</th>
+                      <th className="px-4 py-2">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedReceiptProducts.map((product, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-[#f57b20] text-center text-black"
+                      >
+                        <td className="px-4 py-2">{product.product_name}</td>
+                        <td className="px-4 py-2">{product.product_number}</td>
+                        <td className="px-4 py-2">{product.selling_price}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => {
                   setDeleteModalOpen(false);
                   setSelectedReceipt(null);
+                  setSelectedReceiptProducts([]);
                 }}
                 className="border border-[#f57b20] text-[#f57b20] px-4 py-2 rounded hover:bg-[#ffebdb] cursor-pointer"
               >
@@ -422,7 +461,6 @@ export default function ChecksPage() {
         </div>
       )}
 
-      {/* Add Receipt Modal */}
       {addModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-8 max-h-[90vh] overflow-y-auto relative">
@@ -582,7 +620,6 @@ export default function ChecksPage() {
         </div>
       )}
 
-      {/* Lookup Receipt Modal */}
       {lookupModalOpen && role === "Cashier" && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-6 max-w-lg w-full">
