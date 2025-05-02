@@ -173,9 +173,7 @@ export default function StatisticsPage() {
       <div className="w-full bg-[#fc8b38] py-4">
         <nav className="flex justify-center space-x-6">
           {[
-            { key: "top-products", label: "Top Products" },
-            { key: "sales-trends", label: "Sales Trends" },
-            { key: "region-revenue", label: "Region Revenue" },
+            { key: "top-products", label: "Products Analytics" },
             {
               key: "total-revenue-by-categories",
               label: "Total Revenue By Categories",
@@ -219,7 +217,7 @@ export default function StatisticsPage() {
                   >
                     <option value="">All</option>
                     {categories.map((cat) => (
-                      <option key={cat.id_category} value={cat.id_category}>
+                      <option key={cat.id} value={cat.id}>
                         {cat.category_name}
                       </option>
                     ))}
@@ -537,11 +535,6 @@ export default function StatisticsPage() {
         {selectedOption === "cashiers" && <CashierStats></CashierStats>}
         {selectedOption === "unpopular" && (
           <UnpopularLoyaltyProducts></UnpopularLoyaltyProducts>
-        )}
-        {["sales-trends", "region-revenue"].includes(selectedOption) && (
-          <div className="flex-grow flex items-center justify-center w-full text-gray-500">
-            No data available for this section.
-          </div>
         )}
       </main>
     </div>

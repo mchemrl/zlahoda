@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, request, session
 from backend.services.employees_service import fetch_employees, fetch_employee_by_id, create_employee, edit_employee, \
     dump_employee, validate_employee
+from psycopg2 import IntegrityError
+from psycopg2.errors import ForeignKeyViolation
+
 
 employees = Blueprint('employees', __name__)
 
@@ -81,7 +84,7 @@ def update_employee():
     return jsonify({"message": "employee updated successfully"}), 200
 
 
-@employees.route('/', methods=('DELETE',))
+@employees.route('/', methods=['DELETE'])
 def delete_employee():
     employee_id = request.args.get('employee_id', type=str)
     if not employee_id:
@@ -90,5 +93,21 @@ def delete_employee():
     if not fetch_employee_by_id(employee_id):
         return jsonify({"error": "employee not found"}), 404
 
-    dump_employee(employee_id)
-    return jsonify({"message": "employee deleted successfully"}), 200
+    try:
+        dump_employee(employee_id)
+        return jsonify({"message": "employee deleted successfully"}), 200
+
+    except ForeignKeyViolation:
+        return jsonify({
+            'error': 'cannot delete employee because there are associated checks'
+        }), 400
+
+    except IntegrityError as e:
+        return jsonify({
+            'error': 'database integrity error: ' + str(e)
+        }), 500
+
+    except Exception as e:
+        return jsonify({
+            'error': 'unexpected error: ' + str(e)
+        }), 500
