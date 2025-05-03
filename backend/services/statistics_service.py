@@ -99,7 +99,7 @@ def fetch_customers_not_from_category_not_from_cashier(category_id):
     AND NOT EXISTS (
         SELECT 1
         FROM receipt r
-        WHERE r.id_employee = 'E000'
+        WHERE r.id_employee NOT IN ('E000', 'E1000')
             AND r.card_number = cc.card_number
     )
     """
