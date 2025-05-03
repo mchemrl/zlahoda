@@ -234,6 +234,8 @@ export default function StoreProductsPage() {
                             })
                     );
                     closeEditModal();
+                    fetchStoreProducts();
+
                 })
                 .catch((err) => console.error(err));
             return;
@@ -297,6 +299,9 @@ export default function StoreProductsPage() {
                 }
 
                 closeEditModal();
+                fetchStoreProducts();
+
+
             })
             .catch((err) => console.error(err));
     };
