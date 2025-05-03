@@ -192,28 +192,26 @@ export default function ChecksPage() {
   };
 
   const handleRowClick = (check) => {
-    if (role === "Manager") {
-      setSelectedReceipt(check);
-      setDeleteModalOpen(true);
-      // Fetch products for the receipt
-      fetch(
-        `http://localhost:5000/api/sales/?receipt_id=${check.receipt_number}`,
-        {
-          credentials: "include",
-        }
-      )
-        .then((response) => {
-          if (!response.ok) throw new Error("Sales not found");
-          return response.json();
-        })
-        .then((salesData) => {
-          setSelectedReceiptProducts(salesData);
-        })
-        .catch((error) => {
-          console.error("Error fetching receipt products:", error);
-          setSelectedReceiptProducts([]);
-        });
-    }
+    setSelectedReceipt(check);
+    setDeleteModalOpen(true);
+    // Fetch products for the receipt
+    fetch(
+      `http://localhost:5000/api/sales/?receipt_id=${check.receipt_number}`,
+      {
+        credentials: "include",
+      }
+    )
+      .then((response) => {
+        if (!response.ok) throw new Error("Sales not found");
+        return response.json();
+      })
+      .then((salesData) => {
+        setSelectedReceiptProducts(salesData);
+      })
+      .catch((error) => {
+        console.error("Error fetching receipt products:", error);
+        setSelectedReceiptProducts([]);
+      });
   };
 
   const handleReceiptLookup = () => {
@@ -380,9 +378,9 @@ export default function ChecksPage() {
                 checks.map((check) => (
                   <tr
                     key={check.receipt_number}
-                    className={`border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center ${
-                      role === "Manager" ? "cursor-pointer" : ""
-                    }`}
+                    className={`border-b border-[#fff3ea] hover:bg-[#db6c1c] text-center 
+                    cursor-pointer
+                    `}
                     onClick={() => handleRowClick(check)}
                   >
                     <td className="px-4 py-2">{check.receipt_number}</td>
@@ -408,13 +406,17 @@ export default function ChecksPage() {
       {deleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
           <div className="bg-[#FFF3EA] rounded-2xl shadow-lg p-6 max-w-md">
-            <h2 className="text-xl font-bold text-[#f57b20] mb-4">
-              Confirm Delete
-            </h2>
-            <p className="mb-6 text-black">
-              Are you sure you want to delete receipt{" "}
-              {selectedReceipt?.receipt_number}?
-            </p>
+            {role === "Manager" && (
+              <h2 className="text-xl font-bold text-[#f57b20] mb-4">
+                Confirm Delete
+              </h2>
+            )}
+            {role === "Manager" && (
+              <p className="mb-6 text-black">
+                Are you sure you want to delete receipt{" "}
+                {selectedReceipt?.receipt_number}?
+              </p>
+            )}
             {selectedReceiptProducts.length > 0 && (
               <div className="mb-6">
                 <h3 className="font-bold text-[#f57b20] mb-2">Products</h3>
@@ -452,12 +454,14 @@ export default function ChecksPage() {
               >
                 Cancel
               </button>
-              <button
-                onClick={handleDelete}
-                className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c] cursor-pointer"
-              >
-                Delete
-              </button>
+              {role === "Manager" && (
+                <button
+                  onClick={handleDelete}
+                  className="bg-[#f57b20] text-white px-4 py-2 rounded hover:bg-[#db6c1c] cursor-pointer"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>
