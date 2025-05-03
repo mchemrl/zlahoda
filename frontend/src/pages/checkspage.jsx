@@ -395,12 +395,14 @@ export default function ChecksPage() {
             </tbody>
           </table>
         </div>
-        <button
-          onClick={() => setAddModalOpen(true)}
-          className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
-        >
-          Add new receipt
-        </button>
+        {role === "Cashier" && (
+          <button
+            onClick={() => setAddModalOpen(true)}
+            className="border bg-[#f57b20] px-3 py-2 cursor-pointer hover:bg-[#db6c1c]"
+          >
+            Add new receipt
+          </button>
+        )}
       </main>
 
       {deleteModalOpen && (
