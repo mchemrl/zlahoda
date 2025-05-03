@@ -502,11 +502,11 @@ export default function ChecksPage() {
               className="border border-[#f57b20] rounded p-2 w-full bg-[#fff3ea] text-[#f57b20] mb-4"
             />
             <select
-              value={newReceipt.customer_card || ""}
+              value={newReceipt.card_number || ""}
               onChange={(e) =>
                 setNewReceipt({
                   ...newReceipt,
-                  customer_card: e.target.value || null,
+                  card_number: e.target.value || null,
                 })
               }
               className="w-full mb-6 border p-2 rounded border-[#f57b20] text-[#f57b20]"
