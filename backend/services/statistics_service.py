@@ -36,7 +36,7 @@ def fetch_top_products_by_revenue(category=None):
 
 def fetch_products_not_purchased_within_date(print_date):
     query = f"""
-            select distinct p.product_name
+            select distinct p.product_name, p.id_product
             from product p join store_product sp on p.id_product = sp.id_product
                 join sale s on sp.UPC = s.UPC
             where sp.UPC not in (
@@ -55,7 +55,8 @@ def fetch_products_not_purchased_within_date(print_date):
             products = cur.fetchall()
     return [
         {
-            "product_name": row[0]
+            "product_name": row[0],
+            "id_product": row[1]
         }
         for row in products
     ]
