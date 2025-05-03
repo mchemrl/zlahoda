@@ -83,8 +83,8 @@ def create_employee(employee):
             query = '''
                 insert into employee (
                 id_employee,
-                empl_name,
                 empl_surname,
+                empl_name,
                 empl_patronymic,
                 empl_role,
                 salary,
@@ -104,8 +104,8 @@ def edit_employee(employee):
         with conn.cursor() as cur:
             query = '''
                 update employee
-                set empl_name = %s,
-                    empl_surname = %s,
+                set empl_surname = %s,
+                    empl_name = %s,
                     empl_patronymic = %s,
                     empl_role = %s,
                     salary = %s,
